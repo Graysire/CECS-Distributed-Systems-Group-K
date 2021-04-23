@@ -36,4 +36,11 @@ int main()
     //Step 4: Open the socket
     //This will allow the socket to communicate with other sockets
     socket.open(connectionProtocol, errorCode);
+
+    //If an error is received, print said error and return
+    if (errorCode.value() != 0)
+    {
+        std::cout << "Failed to open socket, Error code = " << errorCode.value() << ". Message " << errorCode.message();
+        return errorCode.value();
+    }
 }
