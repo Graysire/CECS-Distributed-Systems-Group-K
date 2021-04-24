@@ -26,7 +26,54 @@ void writeToSocket(asio::ip::tcp::socket& socket, std::string message)
     //}
 }
 
+//Function to read a string from a socket
+std::string readFromSocket(asio::ip::tcp::socket& socket) 
+{
+    //(maximum?) number of bytes of the expected message
+    const unsigned char MESSAGE_SIZE = 5;
+    //initialize variable to receive the message
+    char message[MESSAGE_SIZE];
 
+    //read the full message of size MESSAGE_SIZE into message
+    asio::read(socket, asio::buffer(message, MESSAGE_SIZE));
+
+    //return message as a string
+    return std::string(message, MESSAGE_SIZE);
+
+    //As with write, this is the complex form of the code handled by read()
+    //number of bytes received so far
+    //std::size_t bytesRead = 0;
+
+    ////keep running loop until all expected bytes have been received
+    //while (bytesRead != MESSAGE_SIZE) 
+    //{
+    //    bytesRead += socket.read_some(asio::buffer(message + bytesRead, MESSAGE_SIZE - bytesRead));
+    //}
+
+    ////convert to string and return
+    //return std::string(message, bytesRead);
+}
+
+//Function to read a string from a socket, ending after reaching a delimiter character
+std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
+{
+    //declare stream buffer
+    asio::streambuf sBuffer;
+
+    //Synchronously read data from socket until delim character is encountered
+    asio::read_until(socket, sBuffer, delim);
+
+    //declare message
+    std::string message;
+
+    //extract message from the buffer
+    std::istream input_stream(&sBuffer);
+    std::getline(input_stream, message);
+    //return the message
+    return message;
+
+
+}
 
 
 int main()
@@ -63,7 +110,7 @@ int main()
 
         writeToSocket(socket, "Hello");
 
-
+        writeToSocket(socket, "Hello World and otherthigns to create a message of length \r");
 
 
     }

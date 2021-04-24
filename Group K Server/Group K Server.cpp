@@ -55,6 +55,27 @@ std::string readFromSocket(asio::ip::tcp::socket& socket)
     //return std::string(message, bytesRead);
 }
 
+//Function to read a string from a socket, ending after reaching a delimiter character
+std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
+{
+    //declare stream buffer
+    asio::streambuf sBuffer;
+
+    //Synchronously read data from socket until delim character is encountered
+    asio::read_until(socket, sBuffer, delim);
+
+    //declare message
+    std::string message;
+
+    //extract message from the buffer
+    std::istream input_stream(&sBuffer);
+    std::getline(input_stream, message);
+    //return the message
+    return message;
+
+
+}
+
 int main()
 {
     //https://subscription.packtpub.com/book/application_development/9781783986545/1/ch01lvl1sec16/accepting-connections
@@ -100,7 +121,7 @@ int main()
         // or receive data from it.
 
         std::cout << readFromSocket(socket) << std::endl;
-
+        std::cout << readFromSocketUntil(socket, '\r') << std::endl;
 
     }
     catch (system::system_error& e) {
