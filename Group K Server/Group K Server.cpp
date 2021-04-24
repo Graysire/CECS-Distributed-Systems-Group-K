@@ -7,6 +7,54 @@
 
 using namespace boost;
 
+
+//Function to write the message to the socket
+void writeToSocket(asio::ip::tcp::socket& socket, std::string message)
+{
+    //this writes the entire buffer to the socket
+    //it works approximately the same way as the below loop
+    asio::write(socket, asio::buffer(message));
+
+    //this is a needlessly complex form of writing, but explaisn how the writing works
+    // Declare size of number of bytes that have been written
+    //std::size_t bytesWritten = 0;
+
+    //// Run the loop until all data is written to the socket.
+    //while (bytesWritten != message.length())
+    //{
+    //    //write bytes and increment the number of bytes that have been written
+    //    bytesWritten += socket.write_some(asio::buffer(message.c_str() + bytesWritten, message.length() - bytesWritten));
+    //}
+}
+
+//Function to read a string from a socket
+std::string readFromSocket(asio::ip::tcp::socket& socket) 
+{
+    //(maximum?) number of bytes of the expected message
+    const unsigned char MESSAGE_SIZE = 5;
+    //initialize variable to receive the message
+    char message[MESSAGE_SIZE];
+
+    //read the full message of size MESSAGE_SIZE into message
+    asio::read(socket, asio::buffer(message, MESSAGE_SIZE));
+
+    //return message as a string
+    return std::string(message, MESSAGE_SIZE);
+
+    //As with write, this is the complex form of the code handled by read()
+    //number of bytes received so far
+    //std::size_t bytesRead = 0;
+
+    ////keep running loop until all expected bytes have been received
+    //while (bytesRead != MESSAGE_SIZE) 
+    //{
+    //    bytesRead += socket.read_some(asio::buffer(message + bytesRead, MESSAGE_SIZE - bytesRead));
+    //}
+
+    ////convert to string and return
+    //return std::string(message, bytesRead);
+}
+
 int main()
 {
     //https://subscription.packtpub.com/book/application_development/9781783986545/1/ch01lvl1sec16/accepting-connections
@@ -50,6 +98,10 @@ int main()
         // At this point 'sock' socket is connected to 
         // the client application and can be used to send data to
         // or receive data from it.
+
+        std::cout << readFromSocket(socket) << std::endl;
+
+
     }
     catch (system::system_error& e) {
         std::cout << "Error occured! Error code = " << e.code()
