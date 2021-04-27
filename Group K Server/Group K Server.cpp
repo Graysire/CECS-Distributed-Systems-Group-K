@@ -76,6 +76,10 @@ std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
 
 }
 
+void handle(const boost::system::error_code ec, std::size_t t)
+{}
+
+//ARP proto
 int main()
 {
     //https://subscription.packtpub.com/book/application_development/9781783986545/1/ch01lvl1sec16/accepting-connections
@@ -86,42 +90,40 @@ int main()
     //this is the prot that will be listened to
     unsigned short listenPort = 3333;
 
+    std::string listenIP = "0.0.0.0";
+    std::string multiIP = "239.255.0.1";
+    boost::asio::ip::udp::endpoint listen;
+
     // Creates the endpoint for use by the socket(s) for communication using TCP
-    asio::ip::tcp::endpoint serverEndpoint(asio::ip::address_v4::any(), listenPort);
+    asio::ip::udp::endpoint serverEndpoint(asio::ip::address::from_string(listenIP), 1900);
 
     // I/O context that is used as a basis for communicating I/O commands to the OS
     asio::io_context ios;
 
     //Attempt to create the connection
-    try {
-        // Step 3. Instantiating and opening an acceptor socket.
-        //this will be used to listen for incoming connections
-        asio::ip::tcp::acceptor acceptor(ios, serverEndpoint.protocol());
+    try 
+    {
+        boost::asio::ip::udp::socket socket(ios);
+        socket.open(serverEndpoint.protocol());
+        socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+        socket.bind(serverEndpoint);
+        socket.set_option(boost::asio::ip::multicast::join_group(asio::ip::address::from_string("239.255.0.1")));
+        std::array<char, 1024> datra;
 
-        // Step 4. Binding the acceptor socket to the server endpoint
-        // Connect the acceptorand the endpoint to allow the acceptor to listen for connection requests
-        acceptor.bind(serverEndpoint);
 
-        // Step 5. Starting to listen for incoming connection requests
-        //Listen for any incoming requests with a maximum queue of BACKLOG_SIZE
-        acceptor.listen(BACKLOG_SIZE);
+        while (true)
+        {
+            try
+            {
+                std::cout << socket.remote_endpoint() << std::endl;
+                socket.async_receive_from(boost::asio::buffer(datra), listen, handle);
+                std::cout.write(datra.data(), 7);
+            }
+            catch(system::system_error&e)
+            {
 
-        // Step 6. Creating an active socket.
-        //Create an active socket to connect to any communication requests received
-        asio::ip::tcp::socket socket(ios);
-
-        // Step 7. Processing the next connection request and connecting the active socket to the client.
-        //block until we receive a request, then connect the socket ot the request
-        acceptor.accept(socket);
-
-        std::cout << "accepted" << std::endl;
-
-        // At this point 'sock' socket is connected to 
-        // the client application and can be used to send data to
-        // or receive data from it.
-
-        std::cout << readFromSocket(socket) << std::endl;
-        std::cout << readFromSocketUntil(socket, '\r') << std::endl;
+            }
+        }
 
     }
     catch (system::system_error& e) {

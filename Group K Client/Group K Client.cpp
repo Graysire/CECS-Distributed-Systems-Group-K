@@ -75,6 +75,25 @@ std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
 
 }
 
+//void do_send(asio::ip::udp::socket socket)
+//{
+//
+//    std::ostringstream os;
+//    os << "Message";
+//    std::string message_ = os.str();
+//
+//    socket_.async_send_to(
+//        boost::asio::buffer(message_), endpoint_,
+//        (boost::system::error_code ec, std::size_t /*length*/)
+//        {
+//            if (!ec && message_count_ < max_message_count)
+//                do_timeout();
+//        });
+//}
+
+
+void handle(const boost::system::error_code ec, std::size_t t)
+{}
 
 int main()
 {
@@ -83,20 +102,20 @@ int main()
     // Step 1. Assume that the client application has already
     // obtained the IP address and protocol port number of the
     // target server.
-    std::string targetRawIP = "127.0.0.1";
+    std::string targetRawIP = "239.255.0.1";
     unsigned short targetPort = 3333;
 
     try {
         // Step 2. Creating an endpoint designating  target server application.
         // this will be used by the sockets as an access point for communication using TCP
-        asio::ip::tcp::endpoint clientEndpoint(asio::ip::address::from_string(targetRawIP), targetPort);
+        asio::ip::udp::endpoint clientEndpoint(asio::ip::address::from_string(targetRawIP), targetPort);
 
         // I/O context that is used as a basis for communicating I/O commands to the OS
         asio::io_context ios;
 
         // Step 3. Creating and opening a socket.
         // this will allow the socket to be used
-        asio::ip::tcp::socket socket(ios, clientEndpoint.protocol());
+        asio::ip::udp::socket socket(ios, clientEndpoint.protocol());
 
         // Step 4. Connecting a socket.
         // this will attemptto connect the socket to the server
@@ -104,16 +123,20 @@ int main()
 
         std::cout << "connected" << std::endl;
 
-        // At this point socket 'sock' is connected to 
-        // the server application and can be used
-        // to send data to or receive data from it.
+        boost::system::error_code ec;
+        std::ostringstream os;
+        os << "Message";
+        std::string message_ = os.str();
+        while (true)
+        {
 
-        writeToSocket(socket, "Hello");
-
-        writeToSocket(socket, "Hello World and otherthigns to create a message of length \r");
-
-
+            socket.async_send_to(
+                boost::asio::buffer(message_, 7), clientEndpoint,
+                handle);
+        }
     }
+
+    
     // Overloads of asio::ip::address::from_string() and 
     // asio::ip::tcp::socket::connect() used here throw
     // exceptions in case of error condition.
