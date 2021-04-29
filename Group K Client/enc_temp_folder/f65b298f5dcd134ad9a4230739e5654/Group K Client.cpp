@@ -93,7 +93,6 @@ std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
 //        });
 //}
 
-//this function will detect all IP addresses within a subnet, if a vLAN exists, it will only detect IPs in the boundaries of the vLAN
 std::vector<std::string> findIP()
 {
     std::vector<std::string> ipList;
