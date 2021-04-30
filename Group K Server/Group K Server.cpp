@@ -91,11 +91,10 @@ int main()
     unsigned short listenPort = 3333;
 
     std::string listenIP = "0.0.0.0";
-    std::string multiIP = "239.255.0.1";
-    boost::asio::ip::udp::endpoint listen;
+    boost::asio::ip::tcp::endpoint listen;
 
     // Creates the endpoint for use by the socket(s) for communication using TCP
-    asio::ip::udp::endpoint serverEndpoint(asio::ip::address::from_string(listenIP), 1900);
+    asio::ip::tcp::endpoint serverEndpoint(asio::ip::address::from_string(listenIP), listenPort);
 
     // I/O context that is used as a basis for communicating I/O commands to the OS
     asio::io_context ios;
@@ -103,27 +102,31 @@ int main()
     //Attempt to create the connection
     try 
     {
-        boost::asio::ip::udp::socket socket(ios);
-        socket.open(serverEndpoint.protocol());
-        socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-        socket.bind(serverEndpoint);
-        socket.set_option(boost::asio::ip::multicast::join_group(asio::ip::address::from_string("239.255.0.1")));
-        std::array<char, 1024> datra;
+        boost::asio::ip::tcp::acceptor acceptor(ios, serverEndpoint.protocol());
+        acceptor.bind(serverEndpoint);
+        acceptor.listen(BACKLOG_SIZE);
 
+        asio::ip::tcp::socket socket(ios);
+        acceptor.accept(socket);
 
-        while (true)
-        {
-            try
-            {
-                std::cout << socket.remote_endpoint() << std::endl;
-                socket.async_receive_from(boost::asio::buffer(datra), listen, handle);
-                std::cout.write(datra.data(), 7);
-            }
-            catch(system::system_error&e)
-            {
+        //std::array<char, 1024> datra;
+        std::cout << "Received";
+        while (true) {}
+        
 
-            }
-        }
+        //while (true)
+        //{
+        //    try
+        //    {
+        //        std::cout << socket.remote_endpoint() << std::endl;
+        //        //socket.async_receive_from(boost::asio::buffer(datra), listen, handle);
+        //        //std::cout.write(datra.data(), 7);
+        //    }
+        //    catch(system::system_error&e)
+        //    {
+
+        //    }
+        //}
 
     }
     catch (system::system_error& e) {

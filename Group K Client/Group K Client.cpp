@@ -137,7 +137,7 @@ std::vector<std::string> findIP()
             //if a space is found and the discovered string is of sufficient length to be an IP, add it to the vector
             else if (bufferString[i] == ' ' && i - startIndex > 3)
             {
-                ipList.push_back(bufferString.substr(startIndex, i - startIndex));
+                ipList.push_back(bufferString.substr(startIndex + 1, i - startIndex - 1));
             }
             //set start index to the current index
             startIndex = i;
@@ -165,28 +165,57 @@ int main()
     // Step 1. Assume that the client application has already
     // obtained the IP address and protocol port number of the
     // target server.
-    std::string targetRawIP = "239.255.0.1";
+    //std::string targetRawIP = "239.255.0.1";
     unsigned short targetPort = 3333;
 
-    findIP();
+
+    // I/O context that is used as a basis for communicating I/O commands to the OS
+    asio::io_context ios;
+
+    asio::ip::tcp::endpoint clientEndpoint;
+
+    std::vector<std::string> ipList = findIP();
+
+    for (int i = 0; i < ipList.size(); i++)
+    {
+        try
+        {
+            // Create an endpoint designating target server application.
+            // this will be used by the sockets as an access point for communication using TCP
+            std::cout << ipList[i] << " " << ipList[i].size() << std::endl;
+            asio::ip::tcp::endpoint clientEndpoint(asio::ip::address::from_string(ipList[i]), targetPort);
+
+
+            // Create and open a socket.
+            // this will allow the socket to be used
+            asio::ip::tcp::socket socket(ios, clientEndpoint.protocol());
+
+            // Connect a socket.
+            // this will attempt to connect the socket to the server
+            socket.connect(clientEndpoint);
+
+            std::cout << "c" << std::endl;
+        }
+        catch (system::system_error& e) {
+            std::cout << "Error occured! Error code = " << e.code()
+                << ". Message: " << e.what() << std::endl;;
+
+            //return e.code().value();
+        }
+    }
+
+
+
 
     try {
-        // Step 2. Creating an endpoint designating  target server application.
-        // this will be used by the sockets as an access point for communication using TCP
-        asio::ip::udp::endpoint clientEndpoint(asio::ip::address::from_string(targetRawIP), targetPort);
 
-        // I/O context that is used as a basis for communicating I/O commands to the OS
-        asio::io_context ios;
 
-        // Step 3. Creating and opening a socket.
-        // this will allow the socket to be used
-        asio::ip::udp::socket socket(ios, clientEndpoint.protocol());
 
-        // Step 4. Connecting a socket.
-        // this will attemptto connect the socket to the server
-        socket.connect(clientEndpoint);
 
-        std::cout << "connected" << std::endl;
+
+
+
+        
 
         boost::system::error_code ec;
         std::ostringstream os;
