@@ -96,24 +96,59 @@ std::string readFromSocketUntil(asio::ip::tcp::socket& socket, char delim)
 //this function will detect all IP addresses within a subnet, if a vLAN exists, it will only detect IPs in the boundaries of the vLAN
 std::vector<std::string> findIP()
 {
+    //create a vector to store the IPs in
     std::vector<std::string> ipList;
+    //Open a command prompt and use arp -a to retrieve a list of IP addresses and hteir interfaces
     FILE* pipe = _popen("arp -a", "r");
+    //If the pupe was not created print the error
     if (!pipe)
     {
         fprintf(stderr, "Unable to open IP Scan pipe");
     }
+    //if the pipe was created continue
     else
     {
+        //instantiate buffer and string
         char buffer[128];
+        std::string bufferString = "";
+
+        //until the pipe contains no more data add the data to the string using the buffer
         while (!feof(pipe))
         {
             if (fgets(buffer, 128, pipe) != NULL)
             {
-                std::cout << buffer << std::endl;
+                bufferString += buffer;
             }
         }
+        //Close the pipe
         _pclose(pipe);
+
+        std::cout << bufferString;
+        //create int for tracking index in string
+        int startIndex = 0;
+        //iterate through bufferString
+        for (int i = 0; i < bufferString.size(); i++)
+        {
+            //if the current value is an integer or a '.' continue
+            if (isdigit(bufferString[i]) || bufferString[i] == '.')
+            {
+                continue;
+            }
+            //if a space is found and the discovered string is of sufficient length to be an IP, add it to the vector
+            else if (bufferString[i] == ' ' && i - startIndex > 3)
+            {
+                ipList.push_back(bufferString.substr(startIndex, i - startIndex));
+            }
+            //set start index to the current index
+            startIndex = i;
+        }
+
+        for (int i = 0; i < ipList.size(); i++)
+        {
+            std::cout << ipList[i] << std::endl;
+        }
     }
+
    
     return ipList;
 
@@ -157,13 +192,13 @@ int main()
         std::ostringstream os;
         os << "Message";
         std::string message_ = os.str();
-        while (true)
+        /*while (true)
         {
 
             socket.async_send_to(
                 boost::asio::buffer(message_, 7), clientEndpoint,
                 handle);
-        }
+        }*/
     }  
     // Overloads of asio::ip::address::from_string() and 
     // asio::ip::tcp::socket::connect() used here throw
