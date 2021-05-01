@@ -208,18 +208,17 @@ int main()
 
 
     try {
-
-
-
-
-
-
-
-        
-
         boost::system::error_code ec;
         std::ostringstream os;
         os << "Message";
+
+        // Get file from directory -- THIS IS WHERE JESS STARTS TO BREAK CODE
+        std::cout << "Directory of the file: ";
+        std::string fileDirectory = "";
+        std::cin >> fileDirectory;
+
+        // THIS IS THE END OF WHERE JESS BREAKS CODE
+
         std::string message_ = os.str();
         /*while (true)
         {
