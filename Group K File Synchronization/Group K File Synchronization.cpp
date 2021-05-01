@@ -5,6 +5,9 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/bind.hpp>
 
 using namespace boost;
 using boost::asio::ip::tcp;
@@ -115,6 +118,90 @@ void findAndConnect(std::vector<asio::ip::tcp::socket> &socketVector, asio::io_c
 
 }
 
+class tcpConnection : public boost::enable_shared_from_this<tcpConnection>
+{
+public:
+    typedef boost::shared_ptr<tcpConnection> pointer;
+
+    static pointer create(asio::io_context& ios)
+    {
+        return pointer(new tcpConnection(ios));
+    }
+
+    asio::ip::tcp::socket& socket()
+    {
+        return socket_;
+    }
+
+    void start()
+    {
+        //Do something, like send files
+
+        //Example async write function
+        /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
+            boost::bind(&tcp_connection::handle_write, shared_from_this(),
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred));*/
+    }
+
+
+
+private:
+    tcpConnection(asio::io_context& ios) : socket_(ios) {};
+
+    //part of the async writing example above
+    //void handle_write(const boost::system::error_code& /*error*/,
+    //    size_t /*bytes_transferred*/)
+    //{
+    //}
+
+    asio::ip::tcp::socket socket_;
+};
+
+
+
+
+
+//Class responsible for accepting connections
+class tcpServer
+{
+public:
+    //constructor which creates an acceptor and starts accepting connections
+    tcpServer(asio::io_context& ios) : acceptor(ios, tcp::endpoint(tcp::v4(), PORT))
+    {
+        this->ios = &ios;
+        startAccept();
+    }
+private:
+    //the first portion of acception a connection, starts accepting asynchronously
+    void startAccept()
+    {
+        //create a connection object to represent the connection
+        tcpConnection::pointer newConnection = tcpConnection::create(*ios);
+
+        //accept the connection asynchronously and call handleAccept() when done
+        acceptor.async_accept(newConnection->socket(), boost::bind(&tcpServer::handleAccept, this, newConnection, asio::placeholders::error));
+    }
+
+    //Handles the accpetance of a connection
+    void handleAccept(tcpConnection::pointer newConnection, const system::error_code& error)
+    {
+        //if no error has occurred start the connection
+        if (!error)
+        {
+            newConnection->start();
+        }
+
+        //Go back to searching for more connections
+        startAccept();
+    }
+
+    //the acceptor used to accept connections
+    tcp::acceptor acceptor;
+    asio::io_context* ios;
+};
+
+
 
 int main()
 {
@@ -123,6 +210,8 @@ int main()
 
     //create vector to hold the active sockets
     std::vector<asio::ip::tcp::socket> socketVector;
+
+    tcpServer server = tcpServer(ios);
 
     findAndConnect(socketVector, ios);
 
