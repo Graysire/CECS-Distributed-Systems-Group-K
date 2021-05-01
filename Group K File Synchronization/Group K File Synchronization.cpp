@@ -124,6 +124,8 @@ int main()
     //create vector to hold the active sockets
     std::vector<asio::ip::tcp::socket> socketVector;
     
+    asyncAccept(listenEndpoint, ios);
+
     findAndConnect(socketVector, ios);
 
 }
