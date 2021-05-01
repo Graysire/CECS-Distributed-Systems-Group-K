@@ -54,7 +54,7 @@ std::vector<std::string> findIP()
         //Close the pipe
         _pclose(pipe);
 
-        //std::cout << bufferString;
+        std::cout << bufferString;
         //create int for tracking index in string
         int startIndex = 0;
         //iterate through bufferString
@@ -69,6 +69,13 @@ std::vector<std::string> findIP()
             else if (bufferString[i] == ' ' && i - startIndex > 3)
             {
                 ipList.push_back(bufferString.substr(startIndex + 1, i - startIndex - 1));
+            }
+            //if an x occurs, pop the last IP out, an x only appears in arp -a
+            //after a reference to this computer, this will make it impossible to
+            //connect to a different instance of this app on this machine
+            else if (bufferString[i] == 'x')
+            {
+                ipList.pop_back();
             }
             //set start index to the current index
             startIndex = i;
