@@ -28,6 +28,20 @@ void writeToSocket(asio::ip::tcp::socket& socket, std::string message)
     //}
 }
 
+void sendFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc) {
+    int numOfBytes = 0;
+    while (!feof(file)) {
+        if (numOfBytes = fread(&buffer, elementSize, BUFFER_SIZE, file) > 0) { // this needs a buffer of some sort
+
+            /*handler(const boost::system::error_code & error, numOfBytes);
+            soc.async_send(, 0, handler);
+            soc.async_write_some(boost::asio::buffer(file, numOfBytes), )*/
+        }
+        else
+            break;
+    }
+}
+
 //Function to read a string from a socket
 std::string readFromSocket(asio::ip::tcp::socket& socket) 
 {
@@ -176,6 +190,11 @@ int main()
 
     std::vector<std::string> ipList = findIP();
 
+
+    int BUFFER_SIZE = 256;
+    char buffer[256];
+
+
     for (int i = 0; i < ipList.size(); i++)
     {
         try
@@ -195,6 +214,30 @@ int main()
             socket.connect(clientEndpoint);
 
             std::cout << "c" << std::endl;
+
+            // Get file from directory -- THIS IS WHERE JESS STARTS TO BREAK CODE
+            std::cout << "Directory of the file: ";
+            std::string fileDirectory = "";
+            std::cin >> fileDirectory;
+            const char* fileDirectoryChar = fileDirectory.c_str();
+
+            FILE* fi;
+            errno_t err;
+            
+            if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
+                // The file couldn't be opened, fi is set to NULL
+                std::cout << "Cannot open given file.\n";
+            }
+            else {
+                // File was opened, fi can be used to read the stream
+            }
+
+            //sendFileToSocket(fi, buffer, 1, BUFFER_SIZE, socket);
+
+            fclose(fi);                                                     // close the file
+            // THIS IS THE END OF WHERE JESS BREAKS CODE
+
+
         }
         catch (system::system_error& e) {
             std::cout << "Error occured! Error code = " << e.code()
@@ -204,20 +247,12 @@ int main()
         }
     }
 
-
-
-
     try {
         boost::system::error_code ec;
         std::ostringstream os;
         os << "Message";
 
-        // Get file from directory -- THIS IS WHERE JESS STARTS TO BREAK CODE
-        std::cout << "Directory of the file: ";
-        std::string fileDirectory = "";
-        std::cin >> fileDirectory;
 
-        // THIS IS THE END OF WHERE JESS BREAKS CODE
 
         std::string message_ = os.str();
         /*while (true)
