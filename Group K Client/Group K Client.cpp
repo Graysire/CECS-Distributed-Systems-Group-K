@@ -28,6 +28,39 @@ void writeToSocket(asio::ip::tcp::socket& socket, std::string message)
     //}
 }
 
+int printMenuGetUserInput() { // currently buggy where userinputstr isn't being used as a string
+    std::cout << "1 - Send file to server\n2 - Get file from server\n3 - Exit\nInput: ";
+    std::string userinputstr = "";
+    std::cin >> userinputstr;
+    std::cout << userinputstr;
+    while (userinputstr != "1" || userinputstr != "2" || userinputstr != "3") {
+        std::cout << "Invalid input. Try again: ";
+        std::cin >> userinputstr;
+    }
+    return std::stoi(userinputstr);
+}
+
+FILE* readFileFromUserInputDirectory() {
+    std::cout << "Directory of the file: ";
+    std::string fileDirectory = "";
+    std::cin >> fileDirectory;
+    const char* fileDirectoryChar = fileDirectory.c_str();
+
+    FILE* fi;
+    errno_t err;
+
+    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
+        // The file couldn't be opened, fi is set to NULL
+        std::cout << "Cannot open given file. Please try again.\n";
+    }
+    else {
+        // File was opened, fi can be used to read the stream
+        std::cout << "File has been opened and is ready to be sent!\n";
+        fclose(fi);                                                     // close the file
+    }
+    return fi;
+}
+
 void sendFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc) {
     int numOfBytes = 0;
     while (!feof(file)) {
@@ -194,7 +227,6 @@ int main()
     int BUFFER_SIZE = 256;
     char buffer[256];
 
-
     for (int i = 0; i < ipList.size(); i++)
     {
         try
@@ -216,25 +248,7 @@ int main()
             std::cout << "c" << std::endl;
 
             // Get file from directory -- THIS IS WHERE JESS STARTS TO BREAK CODE
-            std::cout << "Directory of the file: ";
-            std::string fileDirectory = "";
-            std::cin >> fileDirectory;
-            const char* fileDirectoryChar = fileDirectory.c_str();
-
-            FILE* fi;
-            errno_t err;
-            
-            if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
-                // The file couldn't be opened, fi is set to NULL
-                std::cout << "Cannot open given file.\n";
-            }
-            else {
-                // File was opened, fi can be used to read the stream
-            }
-
-            //sendFileToSocket(fi, buffer, 1, BUFFER_SIZE, socket);
-
-            fclose(fi);                                                     // close the file
+            FILE* fi = readFileFromUserInputDirectory();
             // THIS IS THE END OF WHERE JESS BREAKS CODE
 
 
@@ -262,7 +276,7 @@ int main()
                 boost::asio::buffer(message_, 7), clientEndpoint,
                 handle);
         }*/
-    }  
+    }
     // Overloads of asio::ip::address::from_string() and 
     // asio::ip::tcp::socket::connect() used here throw
     // exceptions in case of error condition.
@@ -272,6 +286,20 @@ int main()
 
         return e.code().value();
     }
+
+    // BROKEN MENU STUFF
+    //int menuChoice = printMenuGetUserInput();
+    //while (menuChoice != 3) {
+    //    if (menuChoice == 1) {
+    //        
+    //    }
+    //    else if (menuChoice == 2) {
+    //        std::cout << "Receive file to be implemented!";
+    //    }
+    //    menuChoice = printMenuGetUserInput();
+    //}
+    //std::cout << "Exiting application.";
+
 
     return 0;
 }
