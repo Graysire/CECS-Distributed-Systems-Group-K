@@ -110,7 +110,8 @@ int main()
         acceptor.accept(socket);
 
         //std::array<char, 1024> datra;
-        std::cout << "Received";
+        std::cout << "Received\n";
+        std::cout << readFromSocketUntil(socket,'\n');
         while (true) {}
         
 

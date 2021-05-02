@@ -71,36 +71,42 @@ void writeHandler(const system::error_code& err, std::size_t bytes_transferred) 
     std::cout << "File sending in progress in write handler...\n";
 }
 
-//void writeFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc, const system::error_code& err)
-void writeFileToSocket(FILE* file, asio::ip::tcp::socket& soc) {
+// void writeFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc, const system::error_code& err)
+// void writeFileToSocket(FILE* file, asio::ip::tcp::socket& soc)
+void writeFileToSocket(asio::ip::tcp::socket& soc) {
+    #pragma region Get file directory
+    std::cout << "Directory of the file: ";
+    std::string fileDirectory = "";
+    std::cin >> fileDirectory;
+    const char* fileDirectoryChar = fileDirectory.c_str(); // GET FILE
+
+    FILE* fi;
+    errno_t err;
+    #pragma endregion
+
     int numOfBytes = 0;
 
     std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
-    
-    
-    //while (!feof(file)) {
-    //    /*if (numOfBytes = fread(boost::asio::buffer(data,), elementSize, BUFFER_SIZE, file) > 0) {
-    //        soc.async_write_some(boost::asio::buffer(data,numOfBytes), writeHandler);
-    //        std::cout << "something was written, great!";
-    //    }
-    //    else
-    //        break;*/
-    //    soc.async_write_some(boost::asio::buffer(data, numOfBytes), writeHandler);
-    //}
+    char buffer[100];
 
-    soc.async_write_some(boost::asio::buffer(data, numOfBytes), writeHandler);
-    std::cout << "File sending in progress...\n";
+    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
+    // The file couldn't be opened, fi is set to NULL
+        std::cout << "Cannot open given file.\n";
+    }
+    else {
+        // File was opened, fi can be used to read the stream
+        while (!feof(fi)) {
+            if (fgets(buffer, 100, fi) == NULL) {
+                std::cout << "File has finished reading.\n";
+                break;
+            }
+            fputs(buffer, stdout);
+            soc.async_write_some(boost::asio::buffer(data), writeHandler);
+        }
+        fclose(fi);                                                 // close the file
+    }
+    // old buffer code: boost::asio::buffer(data)
 }
-
-//void handleWrite(asio::ip::tcp::endpoint clientEndpoint, const system::error_code& err) {
-//    if (!err) {
-//        std::cout << "Stop the sending of this file... somehow\n";
-//    }
-//    else {
-//        std::cout << "Something went wrong in handelWrite()! " << err.message() << "\n";
-//    }
-//}
-
 
 //Function to read a string from a socket
 std::string readFromSocket(asio::ip::tcp::socket& socket) 
@@ -273,12 +279,14 @@ int main()
             // Connect a socket.
             // this will attempt to connect the socket to the server
             socket.connect(clientEndpoint);
+            writeToSocket(socket, "Hello from client!\n");
 
             std::cout << "c" << std::endl;
 
             // THIS IS WHERE JESS STARTS TO BREAK CODE
-            fi = readFileFromUserInputDirectory(); //  Get file from directory 
-            writeFileToSocket(fi, socket);
+            //fi = readFileFromUserInputDirectory(); //  Get file from directory 
+            writeFileToSocket(socket);
+            std::cout << "\nFile written to socket... kinda" << std::endl;
             // Send file to socket
             
             // THIS IS THE END OF WHERE JESS BREAKS CODE
@@ -297,7 +305,7 @@ int main()
         std::ostringstream os;
         os << "Message";
 
-
+        
 
         /*std::string message_ = os.str();
         while (true)
