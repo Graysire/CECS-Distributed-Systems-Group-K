@@ -276,7 +276,10 @@ int main()
     
     //code below is commandline necessary for attempting to file file name
     //in cmd string placeholder has been added for the file location
+    // can also use HELP FC in commandline to get instructions of how /b and etc works
     //example code line for below: fc "c:\Program Files\placeholder_file\filename1.txt" "c:\Program Files\placeholder_file\filename1.txt" \B
+    //another example for folder comparison: fc "c:\Program Files\holderfolder\folder1\*" "c:\Program Files\holderfolder\folder2\*" 
+    //example above would check if folder2 has all exact files in folder1, from title names to content in files
     string cmd = exec("fc \"insertfilenamehere.txt\" \"insertfilename2here.txt\" /B");
     cout << "the output of command: " << cmd << endl;
     //string required to be found to see if files are the same 
