@@ -84,8 +84,6 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
     errno_t err;
     #pragma endregion
 
-    int numOfBytes = 0;
-
     std::vector<char> data(soc.available());                                // Get the amount of data avalible in the socket
     char buffer[100];
 
@@ -101,7 +99,7 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
                 break;
             }
             fputs(buffer, stdout);                                          // prints out the contents of the file to console
-            soc.async_write_some(boost::asio::buffer(data), writeHandler);  // writes the content to the socket async
+            soc.async_write_some(boost::asio::buffer(&fi, 100), writeHandler);  // writes the content to the socket async
         }
         fclose(fi);                                                         // close the file
     }

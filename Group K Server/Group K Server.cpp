@@ -84,64 +84,64 @@ void recieveHandler(const boost::system::error_code& error, std::size_t bytes_tr
 
 
 //ARP proto
-//int main()
-//{
-//    //https://subscription.packtpub.com/book/application_development/9781783986545/1/ch01lvl1sec16/accepting-connections
-//
-//    // The size of the queue containing the pending connection requests.
-//    const int BACKLOG_SIZE = 30;
-//
-//    //this is the prot that will be listened to
-//    unsigned short listenPort = 3333;
-//
-//    std::string listenIP = "0.0.0.0";
-//    boost::asio::ip::tcp::endpoint listen;
-//
-//    // Creates the endpoint for use by the socket(s) for communication using TCP
-//    asio::ip::tcp::endpoint serverEndpoint(asio::ip::address::from_string(listenIP), listenPort);
-//
-//    // I/O context that is used as a basis for communicating I/O commands to the OS
-//    asio::io_context ios;
-//
-//    //Attempt to create the connection
-//    try 
-//    {
-//        boost::asio::ip::tcp::acceptor acceptor(ios, serverEndpoint.protocol());
-//        acceptor.bind(serverEndpoint);
-//        acceptor.listen(BACKLOG_SIZE);
-//
-//        asio::ip::tcp::socket socket(ios);
-//        acceptor.accept(socket);
-//
-//        //std::array<char, 1024> datra;
-//        std::cout << "Received\n";
-//        std::cout << readFromSocketUntil(socket,'\n');
-//
-//        
-//        while (true) {}
-//        
-//
-//        //while (true)
-//        //{
-//        //    try
-//        //    {
-//        //        std::cout << socket.remote_endpoint() << std::endl;
-//        //        //socket.async_receive_from(boost::asio::buffer(datra), listen, handle);
-//        //        //std::cout.write(datra.data(), 7);
-//        //    }
-//        //    catch(system::system_error&e)
-//        //    {
-//
-//        //    }
-//        //}
-//
-//    }
-//    catch (system::system_error& e) {
-//        std::cout << "Error occured! Error code = " << e.code()
-//            << ". Message: " << e.what();
-//
-//        return e.code().value();
-//    }
-//    
-//    return 0;
-//}
+int main()
+{
+    //https://subscription.packtpub.com/book/application_development/9781783986545/1/ch01lvl1sec16/accepting-connections
+
+    // The size of the queue containing the pending connection requests.
+    const int BACKLOG_SIZE = 30;
+
+    //this is the prot that will be listened to
+    unsigned short listenPort = 3333;
+
+    std::string listenIP = "0.0.0.0";
+    boost::asio::ip::tcp::endpoint listen;
+
+    // Creates the endpoint for use by the socket(s) for communication using TCP
+    asio::ip::tcp::endpoint serverEndpoint(asio::ip::address::from_string(listenIP), listenPort);
+
+    // I/O context that is used as a basis for communicating I/O commands to the OS
+    asio::io_context ios;
+
+    //Attempt to create the connection
+    try 
+    {
+        boost::asio::ip::tcp::acceptor acceptor(ios, serverEndpoint.protocol());
+        acceptor.bind(serverEndpoint);
+        acceptor.listen(BACKLOG_SIZE);
+
+        asio::ip::tcp::socket socket(ios);
+        acceptor.accept(socket);
+
+        //std::array<char, 1024> datra;
+        std::cout << "Received\n";
+        std::cout << readFromSocketUntil(socket,'\n');
+
+        
+        while (true) {}
+        
+
+        //while (true)
+        //{
+        //    try
+        //    {
+        //        std::cout << socket.remote_endpoint() << std::endl;
+        //        //socket.async_receive_from(boost::asio::buffer(datra), listen, handle);
+        //        //std::cout.write(datra.data(), 7);
+        //    }
+        //    catch(system::system_error&e)
+        //    {
+
+        //    }
+        //}
+
+    }
+    catch (system::system_error& e) {
+        std::cout << "Error occured! Error code = " << e.code()
+            << ". Message: " << e.what();
+
+        return e.code().value();
+    }
+    
+    return 0;
+}
