@@ -86,10 +86,10 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
 
     int numOfBytes = 0;
 
-    std::vector<char> data(soc.available());                                // Get the amount of data avalible in the socket
+    std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
     char buffer[100];
 
-    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {               // try to open the file
+    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
     // The file couldn't be opened, fi is set to NULL
         std::cout << "Cannot open given file.\n";
     }
@@ -100,10 +100,10 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
                 std::cout << "File has finished reading.\n";
                 break;
             }
-            fputs(buffer, stdout);                                          // prints out the contents of the file to console
-            soc.async_write_some(boost::asio::buffer(data), writeHandler);  // writes the content to the socket async
+            fputs(buffer, stdout);
+            soc.async_write_some(boost::asio::buffer(&fi, 100), writeHandler);
         }
-        fclose(fi);                                                         // close the file
+        fclose(fi);                                                 // close the file
     }
     // old buffer code: boost::asio::buffer(data)
 }
@@ -279,13 +279,13 @@ int main()
             // Connect a socket.
             // this will attempt to connect the socket to the server
             socket.connect(clientEndpoint);
-
+            writeToSocket(socket, "Hello from client!\n");
 
             std::cout << "c" << std::endl;
 
             // THIS IS WHERE JESS STARTS TO BREAK CODE
-            fi = readFileFromUserInputDirectory(); //  Get file from directory 
-            //writeFileToSocket(socket);
+            //fi = readFileFromUserInputDirectory(); //  Get file from directory 
+            writeFileToSocket(socket);
             std::cout << "\nFile written to socket... kinda" << std::endl;
             // Send file to socket
             
