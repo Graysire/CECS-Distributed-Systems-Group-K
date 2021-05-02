@@ -82,6 +82,23 @@ void handle(const boost::system::error_code ec, std::size_t t)
 void recieveHandler(const boost::system::error_code& error, std::size_t bytes_transferred) {
 }
 
+void recieveFileFromClient(asio::ip::tcp::socket& socket) {
+    std::string fileDirectory = "file1.txt";
+    const char* fileName = fileDirectory.c_str();
+    FILE* fi;
+    errno_t err;
+    char buffer[100];
+    if ((err = fopen_s(&fi, fileName, "w") != 0)) {
+        std::cout << "Cannot open given file.";
+        return;
+    }
+    int recievedBytes = 0;
+    socket.async_read_some(boost::asio::buffer(&fi, 100), recieveHandler);
+    //fputs(buffer, stdout);
+    std::cout << "Receieved file?\n";
+    fclose(fi);
+}
+
 
 //ARP proto
 int main()
@@ -115,7 +132,8 @@ int main()
 
         //std::array<char, 1024> datra;
         std::cout << "Received\n";
-        std::cout << readFromSocketUntil(socket,'\n');
+        //std::cout << readFromSocketUntil(socket,'\n');
+        recieveFileFromClient(socket);
 
         
         while (true) {}

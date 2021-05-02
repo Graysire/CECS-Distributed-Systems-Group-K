@@ -279,7 +279,7 @@ int main()
             // Connect a socket.
             // this will attempt to connect the socket to the server
             socket.connect(clientEndpoint);
-            writeToSocket(socket, "Hello from client!\n");
+            //writeToSocket(socket, "Hello from client!\n");
 
             std::cout << "c" << std::endl;
 
