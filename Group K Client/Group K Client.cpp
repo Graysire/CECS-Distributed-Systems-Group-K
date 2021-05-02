@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <vector>
 #include <stdio.h>
 
@@ -51,29 +52,47 @@ FILE* readFileFromUserInputDirectory() {
 
     if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
         // The file couldn't be opened, fi is set to NULL
-        std::cout << "Cannot open given file. Please try again.\n";
+        std::cout << "Cannot open given file.\n";
     }
     else {
         // File was opened, fi can be used to read the stream
-        std::cout << "File has been opened and is ready to be sent!\n";
-        fclose(fi);                                                     // close the file
+        fclose(fi);                                                 // close the file
     }
     return fi;
 }
 
-void sendFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc) {
+void writeHandler(const system::error_code& err, std::size_t bytes_transferred) {
+    if (!err) {
+        std::cout << "Stop the sending of this file... somehow\n";
+    }
+    else {
+        std::cout << "Something went wrong in handelWrite()! " << err.message() << "\n";
+    }
+}
+
+void writeFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc, const system::error_code& err) {
     int numOfBytes = 0;
+
+    std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
+    
     while (!feof(file)) {
         if (numOfBytes = fread(&buffer, elementSize, BUFFER_SIZE, file) > 0) { // this needs a buffer of some sort
-
-            /*handler(const boost::system::error_code & error, numOfBytes);
-            soc.async_send(, 0, handler);
-            soc.async_write_some(boost::asio::buffer(file, numOfBytes), )*/
+            soc.async_write_some(boost::asio::buffer(data,numOfBytes), writeHandler);
         }
         else
             break;
     }
 }
+
+//void handleWrite(asio::ip::tcp::endpoint clientEndpoint, const system::error_code& err) {
+//    if (!err) {
+//        std::cout << "Stop the sending of this file... somehow\n";
+//    }
+//    else {
+//        std::cout << "Something went wrong in handelWrite()! " << err.message() << "\n";
+//    }
+//}
+
 
 //Function to read a string from a socket
 std::string readFromSocket(asio::ip::tcp::socket& socket) 
@@ -227,6 +246,8 @@ int main()
     int BUFFER_SIZE = 256;
     char buffer[256];
 
+    FILE* fi = NULL;
+
     for (int i = 0; i < ipList.size(); i++)
     {
         try
@@ -247,10 +268,11 @@ int main()
 
             std::cout << "c" << std::endl;
 
-            // Get file from directory -- THIS IS WHERE JESS STARTS TO BREAK CODE
-            FILE* fi = readFileFromUserInputDirectory();
+            // THIS IS WHERE JESS STARTS TO BREAK CODE
+            fi = readFileFromUserInputDirectory(); //  Get file from directory 
+            // Send file to socket
+            
             // THIS IS THE END OF WHERE JESS BREAKS CODE
-
 
         }
         catch (system::system_error& e) {
@@ -268,8 +290,8 @@ int main()
 
 
 
-        std::string message_ = os.str();
-        /*while (true)
+        /*std::string message_ = os.str();
+        while (true)
         {
 
             socket.async_send_to(
