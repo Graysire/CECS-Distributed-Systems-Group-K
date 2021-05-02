@@ -101,7 +101,7 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
                 break;
             }
             fputs(buffer, stdout);
-            soc.async_write_some(boost::asio::buffer(data), writeHandler);
+            soc.async_write_some(boost::asio::buffer(&fi, 100), writeHandler);
         }
         fclose(fi);                                                 // close the file
     }
