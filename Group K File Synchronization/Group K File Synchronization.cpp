@@ -3,12 +3,16 @@
 
 #include <iostream>
 #include <vector>
+#include <string> 
+#include <stdexcept>
+#include <stdio.h>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 
+using namespace std;
 using namespace boost;
 using boost::asio::ip::tcp;
 
@@ -208,7 +212,55 @@ private:
     asio::io_context* ios;
 };
 
+//obsolete file path locator code here
+//string gainLoc(string fileName)
+//{
+//    char buffer[256];
+//    string line = "";
+//    string result = "";
+//    string nameloc = "dir \"" + fileName + "*\" /s";
+//    int pos = 0;
+//    FILE* pipeName = _popen(nameloc.c_str(), "r");
+//    if (!pipeName) {
+//        return "popen1 in gainLoc failed";
+//    }
+//    while (!feof(pipeName)) {
+//
+//        // use buffer to read and add to result
+//        if (fgets(buffer, 256, pipeName) != NULL)
+//            line += buffer;
+//    }
+//
+//    _pclose(pipeName);
+//    pos = line.find("Directory of ");
+//    result = line.substr(pos, line.find("\n",pos));
+//    return result;
+//
+//}
 
+//code which takes the output of the commandline after the call of file comparision 
+string exec(std::string command) {
+    char buffer[128];
+    string result = "";
+
+    // Open pipe to access the file in the system
+    FILE* pipe = _popen(command.c_str(), "r");
+    if (!pipe) {
+        return "popen failed!";
+    }
+
+    // read till end of process of file compare
+    while (!feof(pipe)) {
+
+        // use buffer to read and add to result
+        if (fgets(buffer, 128, pipe) != NULL)
+            result += buffer;
+    }
+
+    _pclose(pipe);
+    //the ending result can be long if files are not the same
+    return result;
+}
 
 int main()
 {
@@ -221,5 +273,23 @@ int main()
     tcpServer server = tcpServer(ios);
 
     findAndConnect(socketVector, ios);
+    
+    //code below is commandline necessary for attempting to file file name
+    //in cmd string placeholder has been added for the file location
+    //example code line for below: fc "c:\Program Files\placeholder_file\filename1.txt" "c:\Program Files\placeholder_file\filename1.txt" \B
+    string cmd = exec("fc \"insertfilenamehere.txt\" \"insertfilename2here.txt\" /B");
+    cout << "the output of command: " << cmd << endl;
+    //string required to be found to see if files are the same 
+    string check = "FC: no differences encountered";
+    if (cmd.find(check) != std::string::npos)
+    {
+        //files resulted in no differences
+        cout << "Files are the same.";
+    }
+    else
+    {
+        //files are found to be different
+        cout << "Files are not the same.";
+    }
 
 }
