@@ -84,6 +84,8 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
     errno_t err;
     #pragma endregion
 
+    int numOfBytes = 0;
+
     std::vector<char> data(soc.available());                                // Get the amount of data avalible in the socket
     char buffer[100];
 
@@ -98,8 +100,8 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
                 std::cout << "File has finished reading.\n";
                 break;
             }
-            fputs(buffer, stdout);                                              // prints out the contents of the file to console
-            soc.async_write_some(boost::asio::buffer(&fi, 100), writeHandler);  // writes the content to the socket async
+            fputs(buffer, stdout);                                          // prints out the contents of the file to console
+            soc.async_write_some(boost::asio::buffer(data), writeHandler);  // writes the content to the socket async
         }
         fclose(fi);                                                         // close the file
     }
@@ -277,15 +279,14 @@ int main()
             // Connect a socket.
             // this will attempt to connect the socket to the server
             socket.connect(clientEndpoint);
-            writeToSocket(socket, "Hello from client!");
 
 
             std::cout << "c" << std::endl;
 
             // THIS IS WHERE JESS STARTS TO BREAK CODE
-            //fi = readFileFromUserInputDirectory(); //  Get file from directory 
+            fi = readFileFromUserInputDirectory(); //  Get file from directory 
             //writeFileToSocket(socket);
-            //std::cout << "\nFile written to socket... kinda" << std::endl;
+            std::cout << "\nFile written to socket... kinda" << std::endl;
             // Send file to socket
             
             // THIS IS THE END OF WHERE JESS BREAKS CODE
