@@ -68,20 +68,28 @@ void writeHandler(const system::error_code& err, std::size_t bytes_transferred) 
     else {
         std::cout << "Something went wrong in handelWrite()! " << err.message() << "\n";
     }
+    std::cout << "File sending in progress in write handler...\n";
 }
 
-void writeFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc, const system::error_code& err) {
+//void writeFileToSocket(FILE* file, const char* buffer, int elementSize, int BUFFER_SIZE, asio::ip::tcp::socket& soc, const system::error_code& err)
+void writeFileToSocket(FILE* file, asio::ip::tcp::socket& soc) {
     int numOfBytes = 0;
 
     std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
     
-    while (!feof(file)) {
-        if (numOfBytes = fread(&buffer, elementSize, BUFFER_SIZE, file) > 0) { // this needs a buffer of some sort
-            soc.async_write_some(boost::asio::buffer(data,numOfBytes), writeHandler);
-        }
-        else
-            break;
-    }
+    
+    //while (!feof(file)) {
+    //    /*if (numOfBytes = fread(boost::asio::buffer(data,), elementSize, BUFFER_SIZE, file) > 0) {
+    //        soc.async_write_some(boost::asio::buffer(data,numOfBytes), writeHandler);
+    //        std::cout << "something was written, great!";
+    //    }
+    //    else
+    //        break;*/
+    //    soc.async_write_some(boost::asio::buffer(data, numOfBytes), writeHandler);
+    //}
+
+    soc.async_write_some(boost::asio::buffer(data, numOfBytes), writeHandler);
+    std::cout << "File sending in progress...\n";
 }
 
 //void handleWrite(asio::ip::tcp::endpoint clientEndpoint, const system::error_code& err) {
@@ -270,6 +278,7 @@ int main()
 
             // THIS IS WHERE JESS STARTS TO BREAK CODE
             fi = readFileFromUserInputDirectory(); //  Get file from directory 
+            writeFileToSocket(fi, socket);
             // Send file to socket
             
             // THIS IS THE END OF WHERE JESS BREAKS CODE
@@ -322,6 +331,6 @@ int main()
     //}
     //std::cout << "Exiting application.";
 
-
+    std::system("pause");
     return 0;
 }
