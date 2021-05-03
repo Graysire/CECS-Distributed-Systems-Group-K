@@ -399,11 +399,12 @@ private:
 string fileComparison(FILE* file1, FILE* file2)
 {
     int differ = 0;
-    int max_size = 65536;);
+    int max_size = 65536;
     char* fi1 = (char*)calloc(1, max_size + 1);
     char* fi2 = (char*)calloc(1, max_size + 1);
     size_t s1, s2;
 
+    //checking if files are the same in do while loop
     do {
         s1 = fread(fi1,1,max_size, file1);
         s2 = fread(fi2,1,max_size, file2);
@@ -419,7 +420,19 @@ string fileComparison(FILE* file1, FILE* file2)
     free(fi1);
     free(fi2);
 
-
+    //if statements here may need to read from the async write/read to alter code
+    //based on file comparison results
+    if (differ ==1)
+    {
+        //placeholder string statement for solving merge conflicts
+        return "Files were found to be different despite same name.";
+    }
+    else {
+        //placeholder string statement for ignoring identical files
+        return "Files were found to be the same. "
+    }
+    //have a case or way of seeing if there is no file present with same name so it 
+    //can just write in; maybe new function
     return "";
 }
 
