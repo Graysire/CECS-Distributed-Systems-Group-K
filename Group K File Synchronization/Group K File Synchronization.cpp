@@ -194,22 +194,14 @@ public:
 
     void startAccept()                                                      // When connected, recieve files from the server
     {
-        std::ifstream fileData(fileDirectoryChar);                                          // Open the file data 
-
-        if (fileData.eof() == false) {                                                       // If you don't have an empty file...
-            while (1) {                                                                     // While true...
-                fileData.read(sendBuff.data(), BUFFERSIZE);                                 // Read in the data from the file into the buffer
-                std::streamsize stmSize = ((fileData) ? BUFFERSIZE : fileData.gcount());    // Set the stream size to the appropriate size based on how much data still needs to be sent
-                sendBuff[stmSize] = 0;                                                      // Set the buffer point at the streamsize to 0
-                std::cout << "Recieved Buffer items: " << sendBuff.data() << std::endl;
-                // A boost asio function that writes the given data to the given socket asynchronously
-                boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
-                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-                if (!fileData)                                                              // Once you reach the last portion of the file
-                    break;                                                                  // Break out of the loop
-            }
+        char lastCharRead = ' ';
+        while (lastCharRead != EOF) {
+            boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
+                boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            std::cout << "Buffer content: " << recvBuff.data() << std::endl;
+            lastCharRead = recvBuff.data()[recvBuff.size()];
         }
-        fileData.close();                                                                   // Close the file after use
+        
     }
 
 
