@@ -7,6 +7,11 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <cstdio>
+#include <ctime>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <cerrno>
+#include <map>
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
@@ -175,12 +180,25 @@ public:
 
     void startConnect()                                                                     // When connected, send your files to the server
     {
-        #pragma region Get file directory (User input method -- to be replaced by checks)
-        std::cout << "Directory of the file: ";
-        std::string fileDirectory = "";
-        std::cin >> fileDirectory;
-        fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
-        #pragma endregion
+        //outdated pragma code due to implementation of fileComparison here
+         //#pragma region Get file directory (User input method -- to be replaced by checks)
+         //std::cout << "Directory of the file: ";
+         //std::string fileDirectory = "";
+         //std::cin >> fileDirectory;
+         //fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
+         //#pragma endregion
+        std::map<string, string> fileNameDirectory;
+        string path_folder = fileLocator("FileTransferLocation");
+        boost::filesystem::path p{ path_folder };
+        boost::filesystem::directory_iterator enditr;
+
+        for (boost::filesystem::directory_iterator itr(p); itr != enditr; ++itr)
+        {
+            string current_file = itr->path().string();
+            string current_file_date = getFileDate(current_file);
+            std::map.insert(pair<string, string>(current_file, current_file_date));
+
+        }
 
         std::ifstream fileData(fileDirectoryChar);                                          // Open the file data 
 
@@ -307,36 +325,48 @@ private:
     asio::io_context* ios;
 };
 
-//obsolete file path locator code here
-//function that gains the file path based off the filename using cmd prompt coding
-//string gainLoc(string fileName)
-//{
-//    char buffer[256];
-//    string result = "";
-//
-//    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
-//    //without any excess information (/b)
-//    string nameloc = "dir " + fileName + "* /s /b";
-//
-//    FILE* pipeName = _popen(nameloc.c_str(), "r");
-//    if (!pipeName) {
-//        return "popen in fileLocation failed";
-//    }
-//    while (!feof(pipeName)) {
-//
-//        // use buffer to read and add to result
-//        if (fgets(buffer, 256, pipeName) != NULL)
-//            result += buffer;
-//    }
-//
-//    _pclose(pipeName);
-//    //make sure that folder File in client and server is removed, also make sure filename is unique for code
-//
-//    //end result should simply have filepath to the file input
-//    return result;
-//
-//}
 
+//function that gains the file path based off the filename using cmd prompt coding
+string fileLocator(string fileName)
+{
+    char buffer[256];
+    string result = "";
+
+    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
+    //without any excess information (/b)
+    string nameloc = "dir " + fileName + "* /s /b";
+
+    FILE* pipeName = _popen(nameloc.c_str(), "r");
+    if (!pipeName) {
+        return "popen in fileLocation failed";
+    }
+    while (!feof(pipeName)) {
+
+        // use buffer to read and add to result
+        if (fgets(buffer, 256, pipeName) != NULL)
+            result += buffer;
+    }
+
+    _pclose(pipeName);
+    //make sure that folder File in client and server is removed, also make sure filename is unique for code
+
+    //end result should simply have filepath to the file input
+    return result;
+}
+
+string getFileDate(string fileName)
+{
+    struct stat fileDate;
+
+    const char* name = fileName.c_str();
+
+    if (stat(name, &fileDate) != 0) {
+        std::cerr << "Error: " << strerror(errno) << endl;
+        return "";
+    }
+
+    return std::ctime(&fileDate.st_mtime);
+}
 
 //updated code to get the file location; still needs to be edited so location can be outputted
 //obsolete code 
