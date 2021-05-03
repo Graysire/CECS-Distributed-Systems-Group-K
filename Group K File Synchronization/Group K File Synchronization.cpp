@@ -194,15 +194,13 @@ public:
         std::ifstream fileData(fileDirectoryChar);
 
         if (fileData.eof() == false) {
-            fileData.read(buff.c_array(), (std::streamsize)buff.size());
+            fileData.read(sendBuff.c_array(), (std::streamsize)sendBuff.size());
             if (fileData.gcount() <= 0) {
                 std::cout << "Error when reading file." << std::endl;
                 return;
             }
             std::cout << "Send " << fileData.gcount() << " bytes, total: " << fileData.tellg() << " bytes.\n";
-            /*boost::asio::async_write(socket_, fileData, boost::bind(&tcpConnection::writeHandler, shared_from_this(),
-                                boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));*/
-            boost::asio::async_write(socket_, boost::asio::buffer(buff, 1024), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
+            boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, 1024), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
                                     boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
             /*if (err) {
@@ -232,8 +230,10 @@ public:
             boost::bind(&tcp_connection::handle_write, shared_from_this(),
                 boost::asio::placeholders::error,
                 boost::asio::placeholders::bytes_transferred));*/
-
-
+        boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, 1024), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
+            boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        std::cout << "Buffer content: " << recvBuff.data() << std::endl;
+        
 
     }
 
@@ -248,7 +248,8 @@ private:
     //}
 
     asio::ip::tcp::socket socket_;
-    boost::array<char, 1024> buff;
+    boost::array<char, 1024> sendBuff;
+    boost::array<char, 1024> recvBuff;
     const char* fileDirectoryChar;
 
 };
