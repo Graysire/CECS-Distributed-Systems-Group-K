@@ -17,7 +17,7 @@
 using namespace std;
 using namespace boost;
 
-namespace fs = std::filesystem;
+//namespace fs = std::filesystem;
 
 using boost::asio::ip::tcp;
 
@@ -165,6 +165,15 @@ public:
         return socket_;
     }
 
+    void writeHandler(const system::error_code& err, std::size_t bytes_transferred) {
+        if (!err) {
+            std::cout << "File is sent/sending!" << std::endl;
+        }
+        else {
+            std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
+        }
+    }
+
     void startConnect()
     {
         //Do something on connecting to another app, like send or receive files
@@ -174,6 +183,36 @@ public:
             boost::bind(&tcp_connection::handle_write, shared_from_this(),
                 boost::asio::placeholders::error,
                 boost::asio::placeholders::bytes_transferred));*/
+
+        #pragma region Get file directory (User input method -- to be replaced by checks)
+        std::cout << "Directory of the file: ";
+        std::string fileDirectory = "";
+        std::cin >> fileDirectory;
+        fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
+        #pragma endregion
+
+        std::ifstream fileData(fileDirectoryChar);
+
+        if (fileData.eof() == false) {
+            fileData.read(buff.c_array(), (std::streamsize)buff.size());
+            if (fileData.gcount() <= 0) {
+                std::cout << "Error when reading file." << std::endl;
+                return;
+            }
+            std::cout << "Send " << fileData.gcount() << " bytes, total: " << fileData.tellg() << " bytes.\n";
+            /*boost::asio::async_write(socket_, fileData, boost::bind(&tcpConnection::writeHandler, shared_from_this(),
+                                boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));*/
+            boost::asio::async_write(socket_, boost::asio::buffer(buff, 1024), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
+                                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+
+            /*if (err) {
+                std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
+                return;
+            }*/
+        }
+        else
+            return;
+
     }
     void startAccept()
     {
@@ -184,6 +223,9 @@ public:
             boost::bind(&tcp_connection::handle_write, shared_from_this(),
                 boost::asio::placeholders::error,
                 boost::asio::placeholders::bytes_transferred));*/
+
+
+
     }
 
 
@@ -197,6 +239,9 @@ private:
     //}
 
     asio::ip::tcp::socket socket_;
+    boost::array<char, 1024> buff;
+    const char* fileDirectoryChar;
+
 };
 
 
@@ -355,8 +400,7 @@ int main()
     std::vector<asio::ip::tcp::socket> socketVector;
 
     tcpServer server = tcpServer(ios);
-
-    //findAndConnect(socketVector, ios);
+    findAndConnect(socketVector, ios);
     
     //code below is commandline necessary for attempting to file file name
     //in cmd string placeholder has been added for the file location
@@ -382,4 +426,5 @@ int main()
     }
 
    // ios.run();
+    std::system("pause");
 }
