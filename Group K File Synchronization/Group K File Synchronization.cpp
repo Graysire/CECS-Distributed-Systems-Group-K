@@ -183,34 +183,6 @@ string getFileDate(string fileName)
     return dateString;
 }
 
-//function that gains the file path based off the filename using cmd prompt coding
-string fileLocator(string fileName)
-{
-    char buffer[256];
-    string result = "";
-
-    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
-    //without any excess information (/b)
-    string nameloc = "dir " + fileName + "* /s /b";
-
-    FILE* pipeName = _popen(nameloc.c_str(), "r");
-    if (!pipeName) {
-        return "popen in fileLocation failed";
-    }
-    while (!feof(pipeName)) {
-
-        // use buffer to read and add to result
-        if (fgets(buffer, 256, pipeName) != NULL)
-            result += buffer;
-    }
-
-    _pclose(pipeName);
-    //make sure that folder File in client and server is removed, also make sure filename is unique for code
-
-    //end result should simply have filepath to the file input
-    return result;
-}
-
 //Class representing one TCP connection
 class tcpConnection : public boost::enable_shared_from_this<tcpConnection>
 {
@@ -231,13 +203,6 @@ public:
 
     void startConnect()                                                                     // When connected, send your files to the server
     {
-        //outdated pragma code due to implementation of fileComparison here
-         //#pragma region Get file directory (User input method -- to be replaced by checks)
-         //std::cout << "Directory of the file: ";
-         //std::string fileDirectory = "";
-         //std::cin >> fileDirectory;
-         //fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
-         //#pragma endregion
         std::map<string, string> fileNameDirectory;
 
         DIR* dr;
@@ -245,7 +210,6 @@ public:
         dr = opendir("FileTransferLocation");
         if (dr) {
             while ((en = readdir(dr)) != NULL){
-                std::cout << "\n" << en->d_name;
                 std::string fileName = en->d_name;
                 fileName = "FileTransferLocation\\" + fileName;
                 std::string fileModDate = getFileDate(fileName);
@@ -254,15 +218,7 @@ public:
             closedir(dr);
         }
 
-        /*string path_folder = fileLocator("FileTransferLocation");
-        boost::filesystem::path p{ path_folder };
-        boost::filesystem::directory_iterator enditr;*/
-        //for (boost::filesystem::directory_iterator itr(p); itr != enditr; ++itr)
-        //{
-        //    string current_file = itr->path().string();
-        //    string current_file_date = getFileDate(current_file);
-        //    fileNameDirectory.insert(pair<string, string>(current_file, current_file_date));
-        //}
+        MAXNUMFILES = fileNameDirectory.size();
 
         for (std::map<string, string>::iterator it = fileNameDirectory.begin(); it != fileNameDirectory.end(); ++it) {
             fileDirectoryChar = it->first.c_str();
@@ -278,8 +234,9 @@ public:
                     // A boost asio function that writes the given data to the given socket asynchronously
                     boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, BUFFERSIZE), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
                         boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-                    if (!fileData)                                                              // Once you reach the last portion of the file
+                    if (!fileData) {                                                            // Once you reach the last portion of the file
                         break;                                                                  // Break out of the loop
+                    }
                 }
             }
             fileData.close();                                                                   // Close the file after use
@@ -310,6 +267,20 @@ private:
         if (!err) {                                                                             // If there is no error in reciving data from the socket....
             std::cout << "File is recieved!" << std::endl;                                      // Send a test-friendly message to indicate that the file has been recieved
             std::cout << "Buffer content: " << recvBuff.data() << std::endl;                    // Send a test-friendly output to know exactly what content has been recieved
+            
+            std::string dataString(recvBuff.data());
+            dataSaveString = dataSaveString + dataString;
+            if (recvBuff.data()[recvBuff.size() - 1] == EOF) {
+                std::string fileDirectory = "FileTransferLocation\\file" + to_string(currentFileIndex) + ".txt";
+                fileDirectoryChar = fileDirectory.c_str();
+                ofstream newFile(fileDirectoryChar);
+                if (newFile.is_open()) {
+                    newFile << dataSaveString;
+                    newFile.close();
+                }
+                dataSaveString = "";
+                currentFileIndex++;
+            }
             tcpConnection::startAccept();                                                       // Recursive call to wait asynchronously read from the socket again when new information is provided
         }
         else {                                                                                  // Otherwise, if ther IS an error...
@@ -322,7 +293,9 @@ private:
     boost::array<char, 1025> sendBuff;                                                          // Data send buffer
     boost::array<char, 1025> recvBuff;                                                          // Data recieve buffer
     const char* fileDirectoryChar;                                                              // File directory as a constant char for reading
-
+    int MAXNUMFILES = 0;
+    int currentFileIndex = 1;
+    std::string dataSaveString = "";
 };
 
 
