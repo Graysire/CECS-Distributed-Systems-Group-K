@@ -212,7 +212,16 @@ public:
         }
         else
             return;
+        fileData.close();
+    }
 
+    void recieveHandler(const system::error_code& err, std::size_t bytes_transferred) {
+        if (!err) {
+            std::cout << "File is recieved!" << std::endl;
+        }
+        else {
+            std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
+        }
     }
     void startAccept()
     {
@@ -470,6 +479,6 @@ int main()
     //    cout << "Files are not the same.";
     //}
 
-    //ios.run();
+    ios.run();
     std::system("pause");
 }
