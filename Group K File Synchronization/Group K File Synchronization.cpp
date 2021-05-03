@@ -165,25 +165,8 @@ public:
         return socket_;
     }
 
-    void writeHandler(const system::error_code& err, std::size_t bytes_transferred) {
-        if (!err) {
-            std::cout << "File is sent/sending!" << std::endl;
-        }
-        else {
-            std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
-        }
-    }
-
-    void startConnect()
+    void startConnect()                                                            // When connected, send your files to the server
     {
-        //Do something on connecting to another app, like send or receive files
-
-        //Example async write function
-        /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
-            boost::bind(&tcp_connection::handle_write, shared_from_this(),
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));*/
-
         #pragma region Get file directory (User input method -- to be replaced by checks)
         std::cout << "Directory of the file: ";
         std::string fileDirectory = "";
@@ -191,65 +174,57 @@ public:
         fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
         #pragma endregion
 
-        std::ifstream fileData(fileDirectoryChar);
+        std::ifstream fileData(fileDirectoryChar);                                          // Open the file data 
 
-        if (fileData.eof() == false) {
-            fileData.read(sendBuff.c_array(), (std::streamsize)sendBuff.size());
-            if (fileData.gcount() <= 0) {
-                std::cout << "Error when reading file." << std::endl;
-                return;
+        if(fileData.eof() == false) {                                                       // If you don't have an empty file...
+            while (1) {                                                                     // While true...
+                fileData.read(sendBuff.data(), BUFFERSIZE);                                 // Read in the data from the file into the buffer
+                std::streamsize stmSize = ((fileData) ? BUFFERSIZE : fileData.gcount());    // Set the stream size to the appropriate size based on how much data still needs to be sent
+                sendBuff[stmSize] = 0;                                                      // Set the buffer point at the streamsize to 0
+                std::cout << "Send Buffer items: " << sendBuff.data() << std::endl;
+                // A boost asio function that writes the given data to the given socket asynchronously
+                boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, BUFFERSIZE), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
+                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+                if (!fileData)                                                              // Once you reach the last portion of the file
+                    break;                                                                  // Break out of the loop
             }
-            std::cout << "Send " << fileData.gcount() << " bytes, total: " << fileData.tellg() << " bytes.\n";
-            boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, 1024), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
-                                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-
-            /*if (err) {
-                std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
-                return;
-            }*/
         }
-        else
-            return;
-        fileData.close();
+        fileData.close();                                                                   // Close the file after use
     }
 
-    void recieveHandler(const system::error_code& err, std::size_t bytes_transferred) {
-        if (!err) {
-            std::cout << "File is recieved!" << std::endl;
-        }
-        else {
-            std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;
-        }
-    }
-    void startAccept()
+    void startAccept()                                                      // When connected, recieve files from the server
     {
-        //Do something on being connected to by another app, like send or receive files
-
-        //Example async write function
-        /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
-            boost::bind(&tcp_connection::handle_write, shared_from_this(),
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));*/
-        boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, 1024), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
+        boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
             boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         std::cout << "Buffer content: " << recvBuff.data() << std::endl;
-        
-
     }
 
 
 private:
     tcpConnection(asio::io_context& ios) : socket_(ios) {};
 
-    //part of the async writing example above
-    //void handle_write(const boost::system::error_code& /*error*/,
-    //    size_t /*bytes_transferred*/)
-    //{
-    //}
+    void writeHandler(const system::error_code& err, std::size_t bytes_transferred) {           // The method that gets called after all data has been written
+        if (!err) {                                                                             // If there are no errors with writing the data to the socket...
+            std::cout << "File is sent to the socket!" << std::endl;                            // Send a test-friendly message to indicate that the file has been sent
+        }
+        else {                                                                                  // Otherwise, if ther IS an error...
+            std::cout << "Something went wrong in writeHandler! Error: " << err << std::endl;   // Print out the error and where it is being caused
+        }
+    }
+
+    void recieveHandler(const system::error_code& err, std::size_t bytes_transferred) {         // The method that gets called after all data has been recieved from the socket
+        if (!err) {                                                                             // If there is no error in reciving data from the socket....
+            std::cout << "File is recieved!" << std::endl;                                      // Send a test-friendly message to indicate that the file has been recieved
+        }
+        else {                                                                                  // Otherwise, if ther IS an error...
+            std::cout << "Something went wrong in recieveHandler! Error: " << err << std::endl; // Print out the error and where it is being caused
+        }
+    }
 
     asio::ip::tcp::socket socket_;
-    boost::array<char, 1024> sendBuff;
-    boost::array<char, 1024> recvBuff;
+    const int BUFFERSIZE = 1024;
+    boost::array<char, 1025> sendBuff;
+    boost::array<char, 1025> recvBuff;
     const char* fileDirectoryChar;
 
 };
