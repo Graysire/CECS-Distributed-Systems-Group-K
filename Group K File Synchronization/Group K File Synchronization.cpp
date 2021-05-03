@@ -287,6 +287,36 @@ private:
 //
 //}
 
+
+//updated code to get the file location; still needs to be edited so location can be outputted
+string fileLocation(string fileName)
+{
+    char buffer[256];
+    string fileDirectory = fileName;
+    const char* fileDirectoryChar = fileDirectory.c_str();
+    string result = "Directory is: ";
+
+    FILE* fi;
+    errno_t err;
+
+    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {
+        cout << "File cannot be opened." << endl;
+    }
+    else {
+        while (!feof(fi)) {
+            if (fgets(buffer, 128, fi) == NULL) {
+                cout << "Gained file location" << endl;
+                break;
+            }
+            fputs(buffer, stdout);
+        }
+    }
+    fclose(fi);
+
+    return result;
+
+}
+
 //code which takes the output of the commandline after the call of file comparision 
 string exec(std::string command) {
     char buffer[128];
