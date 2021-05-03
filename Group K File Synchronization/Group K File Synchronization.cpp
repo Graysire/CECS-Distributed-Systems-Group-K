@@ -280,6 +280,7 @@ private:
                 }
                 dataSaveString = "";
                 currentFileIndex++;
+                currentFileIndex = currentFileIndex % MAXNUMFILES;
             }
             tcpConnection::startAccept();                                                       // Recursive call to wait asynchronously read from the socket again when new information is provided
         }
