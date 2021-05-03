@@ -429,7 +429,7 @@ string fileComparison(FILE* file1, FILE* file2)
     }
     else {
         //placeholder string statement for ignoring identical files
-        return "Files were found to be the same. "
+        return "Files were found to be the same. ";
     }
     //have a case or way of seeing if there is no file present with same name so it 
     //can just write in; maybe new function
