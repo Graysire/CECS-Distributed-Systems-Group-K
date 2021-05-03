@@ -129,6 +129,22 @@ void findAndConnect(std::vector<asio::ip::tcp::socket> &socketVector, asio::io_c
 
 }
 
+std::vector<asio::ip::tcp::endpoint> findEndpoints()
+{
+    std::vector<asio::ip::tcp::endpoint> endpoints;
+
+    //get the IPs
+    std::vector<std::string> ipList = findIP();
+
+    for (int i = 0; i < ipList.size(); i++)
+    {
+        asio::ip::tcp::endpoint ep(asio::ip::address::from_string(ipList[i]), PORT);
+        endpoints.push_back(ep);
+    }
+
+    return endpoints;
+}
+
 class tcpConnection : public boost::enable_shared_from_this<tcpConnection>
 {
 public:
@@ -144,9 +160,9 @@ public:
         return socket_;
     }
 
-    void start()
+    void startConnect()
     {
-        //Do something, like send files
+        //Do something on connecting to another app, like send or receive files
 
         //Example async write function
         /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
@@ -154,7 +170,16 @@ public:
                 boost::asio::placeholders::error,
                 boost::asio::placeholders::bytes_transferred));*/
     }
+    void startAccept()
+    {
+        //Do something on being connected to by another app, like send or receive files
 
+        //Example async write function
+        /*boost::asio::async_write(socket_, boost::asio::buffer(message_),
+            boost::bind(&tcp_connection::handle_write, shared_from_this(),
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred));*/
+    }
 
 
 private:
@@ -182,6 +207,7 @@ public:
     {
         this->ios = &ios;
         startAccept();
+        startConnect();
     }
 private:
     //the first portion of acception a connection, starts accepting asynchronously
@@ -200,11 +226,34 @@ private:
         //if no error has occurred start the connection
         if (!error)
         {
-            newConnection->start();
+            newConnection->startAccept();
         }
 
         //Go back to searching for more connections
         startAccept();
+    }
+
+    //Handles the success of a connection
+    void handleConnect(tcpConnection::pointer newConnection, const system::error_code& error)
+    {
+        //if no error has occurred start the connection
+        if (!error)
+        {
+            newConnection->startConnect();
+        }
+
+        //Go back to searching for more connections
+        startConnect();
+    }
+
+    //the first portion of sending a connection asynchronously
+    void startConnect()
+    {
+        //create a connection object to represent the connection
+        tcpConnection::pointer newConnection = tcpConnection::create(*ios);
+
+        //send connections asynchronously
+        asio::async_connect(newConnection->socket(), findEndpoints(), boost::bind(&tcpServer::handleConnect, this, newConnection, asio::placeholders::error));
     }
 
     //the acceptor used to accept connections
@@ -272,7 +321,7 @@ int main()
 
     tcpServer server = tcpServer(ios);
 
-    findAndConnect(socketVector, ios);
+    //findAndConnect(socketVector, ios);
     
     //code below is commandline necessary for attempting to file file name
     //in cmd string placeholder has been added for the file location
@@ -295,4 +344,5 @@ int main()
         cout << "Files are not the same.";
     }
 
+    ios.run();
 }
