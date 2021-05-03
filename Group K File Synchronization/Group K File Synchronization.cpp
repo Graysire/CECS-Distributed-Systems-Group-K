@@ -6,6 +6,8 @@
 #include <string> 
 #include <stdexcept>
 #include <stdio.h>
+#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
@@ -14,6 +16,9 @@
 
 using namespace std;
 using namespace boost;
+
+namespace fs = std::filesystem;
+
 using boost::asio::ip::tcp;
 
 const unsigned short PORT = 3333;
@@ -318,7 +323,7 @@ string fileLocation(string fileName)
 }
 
 //code which takes the output of the commandline after the call of file comparision 
-string exec(std::string command) {
+string fileCompare(std::string command) {
     char buffer[128];
     string result = "";
 
@@ -359,7 +364,9 @@ int main()
     //example code line for below: fc "c:\Program Files\placeholder_file\filename1.txt" "c:\Program Files\placeholder_file\filename1.txt" \B
     //another example for folder comparison: fc "c:\Program Files\holderfolder\folder1\*" "c:\Program Files\holderfolder\folder2\*" 
     //example above would check if folder2 has all exact files in folder1, from title names to content in files
-    string cmd = exec("fc \"insertfilenamehere.txt\" \"insertfilename2here.txt\" /B");
+    
+
+    string cmd = fileCompare("fc \"Files\\file1.txt\" \"Files\\file2.txt\" /B");
     cout << "the output of command: " << cmd << endl;
     //string required to be found to see if files are the same 
     string check = "FC: no differences encountered";
@@ -374,5 +381,5 @@ int main()
         cout << "Files are not the same.";
     }
 
-    ios.run();
+   // ios.run();
 }
