@@ -6,7 +6,7 @@
 #include <string> 
 #include <stdexcept>
 #include <stdio.h>
-#include <filesystem>
+#include <cstdio>
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
@@ -312,83 +312,115 @@ private:
 };
 
 //obsolete file path locator code here
+//function that gains the file path based off the filename using cmd prompt coding
 //string gainLoc(string fileName)
 //{
 //    char buffer[256];
-//    string line = "";
 //    string result = "";
-//    string nameloc = "dir \"" + fileName + "*\" /s";
-//    int pos = 0;
+//
+//    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
+//    //without any excess information (/b)
+//    string nameloc = "dir " + fileName + "* /s /b";
+//
 //    FILE* pipeName = _popen(nameloc.c_str(), "r");
 //    if (!pipeName) {
-//        return "popen1 in gainLoc failed";
+//        return "popen in fileLocation failed";
 //    }
 //    while (!feof(pipeName)) {
 //
 //        // use buffer to read and add to result
 //        if (fgets(buffer, 256, pipeName) != NULL)
-//            line += buffer;
+//            result += buffer;
 //    }
 //
 //    _pclose(pipeName);
-//    pos = line.find("Directory of ");
-//    result = line.substr(pos, line.find("\n",pos));
+//    //make sure that folder File in client and server is removed, also make sure filename is unique for code
+//
+//    //end result should simply have filepath to the file input
 //    return result;
 //
 //}
 
 
 //updated code to get the file location; still needs to be edited so location can be outputted
-string fileLocation(string fileName)
-{
-    char buffer[256];
-    string fileDirectory = fileName;
-    const char* fileDirectoryChar = fileDirectory.c_str();
-    string result = "Directory is: ";
-
-    FILE* fi;
-    errno_t err;
-
-    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {
-        cout << "File cannot be opened." << endl;
-    }
-    else {
-        while (!feof(fi)) {
-            if (fgets(buffer, 128, fi) == NULL) {
-                cout << "Gained file location" << endl;
-                break;
-            }
-            fputs(buffer, stdout);
-        }
-    }
-    fclose(fi);
-
-    return result;
-
-}
+//obsolete code 
+//string fileLocation(string fileName)
+//{
+//    char buffer[256];
+//    string fileDirectory = fileName;
+//    const char* fileDirectoryChar = fileDirectory.c_str();
+//    string result = "Directory is: ";
+//
+//    FILE* fi;
+//    errno_t err;
+//
+//    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {
+//        cout << "File cannot be opened." << endl;
+//    }
+//    else {
+//        while (!feof(fi)) {
+//            if (fgets(buffer, 128, fi) == NULL) {
+//                cout << "Gained file location" << endl;
+//                break;
+//            }
+//            fputs(buffer, stdout);
+//        }
+//    }
+//    fclose(fi);
+//
+//    return result;
+//
+//}
 
 //code which takes the output of the commandline after the call of file comparision 
-string fileCompare(std::string command) {
-    char buffer[128];
-    string result = "";
+//string fileCompare(std::string command) {
+//    char buffer[128];
+//    string result = "";
+//
+//    // Open pipe to access the file in the system
+//    FILE* pipe = _popen(command.c_str(), "r");
+//    if (!pipe) {
+//        return "popen failed!";
+//    }
+//
+//    // read till end of process of file compare
+//    while (!feof(pipe)) {
+//
+//        // use buffer to read and add to result
+//        if (fgets(buffer, 128, pipe) != NULL)
+//            result += buffer;
+//    }
+//
+//    _pclose(pipe);
+//    //the ending result can be long if files are not the same
+//    return result;
+//}
 
-    // Open pipe to access the file in the system
-    FILE* pipe = _popen(command.c_str(), "r");
-    if (!pipe) {
-        return "popen failed!";
-    }
+string fileComparison(FILE* file1, FILE* file2)
+{
+    int differ = 0;
+    int max_size = 65536;);
+    char* fi1 = (char*)calloc(1, max_size + 1);
+    char* fi2 = (char*)calloc(1, max_size + 1);
+    size_t s1, s2;
 
-    // read till end of process of file compare
-    while (!feof(pipe)) {
+    do {
+        s1 = fread(fi1,1,max_size, file1);
+        s2 = fread(fi2,1,max_size, file2);
+        //below checks if there is any pointer differences at one point or if 
+        // file2 yields a different length than file1
+        if (s1 != s2 || memcmp(fi1,fi2,s1))
+        {
+            differ = 1;
+        }
 
-        // use buffer to read and add to result
-        if (fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
+    } while (!feof(file1) || !feof(file2));
 
-    _pclose(pipe);
-    //the ending result can be long if files are not the same
-    return result;
+    free(fi1);
+    free(fi2);
+
+
+    return "";
 }
 
 int main()
@@ -409,22 +441,22 @@ int main()
     //another example for folder comparison: fc "c:\Program Files\holderfolder\folder1\*" "c:\Program Files\holderfolder\folder2\*" 
     //example above would check if folder2 has all exact files in folder1, from title names to content in files
     
+    //code below was paired with fc file comparison code
+    //string cmd = fileCompare("fc \"Files\\file1.txt\" \"Files\\file2.txt\" /B");
+    //cout << "the output of command: " << cmd << endl;
+    ////string required to be found to see if files are the same 
+    //string check = "FC: no differences encountered";
+    //if (cmd.find(check) != std::string::npos)
+    //{
+    //    //files resulted in no differences
+    //    cout << "Files are the same.";
+    //}
+    //else
+    //{
+    //    //files are found to be different
+    //    cout << "Files are not the same.";
+    //}
 
-    string cmd = fileCompare("fc \"Files\\file1.txt\" \"Files\\file2.txt\" /B");
-    cout << "the output of command: " << cmd << endl;
-    //string required to be found to see if files are the same 
-    string check = "FC: no differences encountered";
-    if (cmd.find(check) != std::string::npos)
-    {
-        //files resulted in no differences
-        cout << "Files are the same.";
-    }
-    else
-    {
-        //files are found to be different
-        cout << "Files are not the same.";
-    }
-
-   // ios.run();
+    //ios.run();
     std::system("pause");
 }
