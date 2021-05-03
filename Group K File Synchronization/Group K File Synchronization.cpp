@@ -270,18 +270,18 @@ private:
             
             std::string dataString(recvBuff.data());
             dataSaveString = dataSaveString + dataString;
-            if (recvBuff.data()[recvBuff.size() - 1] == EOF) {
-                std::string fileDirectory = "FileTransferLocation\\file" + to_string(currentFileIndex) + ".txt";
-                fileDirectoryChar = fileDirectory.c_str();
-                ofstream newFile(fileDirectoryChar);
-                if (newFile.is_open()) {
-                    newFile << dataSaveString;
-                    newFile.close();
-                }
-                dataSaveString = "";
-                currentFileIndex++;
-                currentFileIndex = currentFileIndex % MAXNUMFILES;
+
+            std::string fileDirectory = "FileTransferLocation\\file" + to_string(currentFileIndex) + ".txt";
+            fileDirectoryChar = fileDirectory.c_str();
+            ofstream newFile(fileDirectoryChar);
+            if (newFile.is_open()) {
+                newFile << dataSaveString;
+                newFile.close();
             }
+            dataSaveString = "";
+            currentFileIndex++;
+            currentFileIndex = currentFileIndex % MAXNUMFILES;
+            
             tcpConnection::startAccept();                                                       // Recursive call to wait asynchronously read from the socket again when new information is provided
         }
         else {                                                                                  // Otherwise, if ther IS an error...
