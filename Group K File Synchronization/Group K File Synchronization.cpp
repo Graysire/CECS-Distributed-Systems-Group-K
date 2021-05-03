@@ -160,6 +160,54 @@ std::vector<asio::ip::tcp::endpoint> findEndpoints()
     return endpoints;
 }
 
+string getFileDate(string fileName)
+{
+    struct stat fileDate;
+
+    const char* name = fileName.c_str();
+    char str[26];
+
+    if (stat(name, &fileDate) != 0) {
+        std::cerr << "Error: " << strerror_s(str, sizeof str, errno) << endl;
+        return "";
+    }
+
+    ctime_s(str, sizeof str, &fileDate.st_mtime);
+    std::string dateString = "";
+    for (int i = 0; i < 26; i++) {
+        dateString = dateString + str[i];
+    }
+    return dateString;
+}
+
+//function that gains the file path based off the filename using cmd prompt coding
+string fileLocator(string fileName)
+{
+    char buffer[256];
+    string result = "";
+
+    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
+    //without any excess information (/b)
+    string nameloc = "dir " + fileName + "* /s /b";
+
+    FILE* pipeName = _popen(nameloc.c_str(), "r");
+    if (!pipeName) {
+        return "popen in fileLocation failed";
+    }
+    while (!feof(pipeName)) {
+
+        // use buffer to read and add to result
+        if (fgets(buffer, 256, pipeName) != NULL)
+            result += buffer;
+    }
+
+    _pclose(pipeName);
+    //make sure that folder File in client and server is removed, also make sure filename is unique for code
+
+    //end result should simply have filepath to the file input
+    return result;
+}
+
 //Class representing one TCP connection
 class tcpConnection : public boost::enable_shared_from_this<tcpConnection>
 {
@@ -196,7 +244,7 @@ public:
         {
             string current_file = itr->path().string();
             string current_file_date = getFileDate(current_file);
-            std::map.insert(pair<string, string>(current_file, current_file_date));
+            fileNameDirectory.insert(pair<string, string>(current_file, current_file_date));
 
         }
 
@@ -326,47 +374,9 @@ private:
 };
 
 
-//function that gains the file path based off the filename using cmd prompt coding
-string fileLocator(string fileName)
-{
-    char buffer[256];
-    string result = "";
 
-    //code below is cmd code for finding the filepath of name of file within any directory in comp(/s) without
-    //without any excess information (/b)
-    string nameloc = "dir " + fileName + "* /s /b";
 
-    FILE* pipeName = _popen(nameloc.c_str(), "r");
-    if (!pipeName) {
-        return "popen in fileLocation failed";
-    }
-    while (!feof(pipeName)) {
 
-        // use buffer to read and add to result
-        if (fgets(buffer, 256, pipeName) != NULL)
-            result += buffer;
-    }
-
-    _pclose(pipeName);
-    //make sure that folder File in client and server is removed, also make sure filename is unique for code
-
-    //end result should simply have filepath to the file input
-    return result;
-}
-
-string getFileDate(string fileName)
-{
-    struct stat fileDate;
-
-    const char* name = fileName.c_str();
-
-    if (stat(name, &fileDate) != 0) {
-        std::cerr << "Error: " << strerror(errno) << endl;
-        return "";
-    }
-
-    return std::ctime(&fileDate.st_mtime);
-}
 
 //updated code to get the file location; still needs to be edited so location can be outputted
 //obsolete code 
