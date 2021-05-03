@@ -194,6 +194,7 @@ public:
 
     void startAccept()                                                      // When connected, recieve files from the server
     {
+        // A boost asio function that reads the given socket asynchronously and stores the data into a buffer
         boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
             boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
@@ -214,19 +215,19 @@ private:
     void recieveHandler(const system::error_code& err, std::size_t bytes_transferred) {         // The method that gets called after all data has been recieved from the socket
         if (!err) {                                                                             // If there is no error in reciving data from the socket....
             std::cout << "File is recieved!" << std::endl;                                      // Send a test-friendly message to indicate that the file has been recieved
-            std::cout << "Buffer content: " << recvBuff.data() << std::endl;
-            tcpConnection::startAccept();
+            std::cout << "Buffer content: " << recvBuff.data() << std::endl;                    // Send a test-friendly output to know exactly what content has been recieved
+            tcpConnection::startAccept();                                                       // Recursive call to wait asynchronously read from the socket again when new information is provided
         }
         else {                                                                                  // Otherwise, if ther IS an error...
             std::cout << "Something went wrong in recieveHandler! Error: " << err << std::endl; // Print out the error and where it is being caused
         }
     }
 
-    asio::ip::tcp::socket socket_;
-    const int BUFFERSIZE = 1024;
-    boost::array<char, 1025> sendBuff;
-    boost::array<char, 1025> recvBuff;
-    const char* fileDirectoryChar;
+    asio::ip::tcp::socket socket_;                                                              // The TCP socket used for the client and server to read and write from
+    const int BUFFERSIZE = 1024;                                                                // Max size of the buffers
+    boost::array<char, 1025> sendBuff;                                                          // Data send buffer
+    boost::array<char, 1025> recvBuff;                                                          // Data recieve buffer
+    const char* fileDirectoryChar;                                                              // File directory as a constant char for reading
 
 };
 
