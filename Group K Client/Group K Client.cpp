@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <vector>
@@ -84,7 +85,6 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
     errno_t err;
     #pragma endregion
 
-    int numOfBytes = 0;
 
     std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
     char buffer[100];
@@ -95,17 +95,18 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
     }
     else {
         // File was opened, fi can be used to read the stream
+        std::ofstream fileData(fileDirectoryChar);
         while (!feof(fi)) {
             if (fgets(buffer, 100, fi) == NULL) {
                 std::cout << "File has finished reading.\n";
                 break;
             }
-            fputs(buffer, stdout);
-            soc.async_write_some(boost::asio::buffer(&fi, 100), writeHandler);
+            fputs(buffer, stdout);                                  // prints the data in the buffer onto the console output
+            soc.async_write_some(boost::asio::buffer(buffer, 100), writeHandler);
+            //boost::asio::async_write(soc, fileData, boost::bind(&writeHandler, boost::asio::placeholders::error));
         }
         fclose(fi);                                                 // close the file
     }
-    // old buffer code: boost::asio::buffer(data)
 }
 
 //Function to read a string from a socket
