@@ -196,14 +196,6 @@ public:
     {
         boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
             boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-        char lastCharRead = recvBuff.data()[recvBuff.size()];
-        while (lastCharRead != EOF) {
-            boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
-                boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-            std::cout << "Buffer content: " << recvBuff.data() << std::endl;
-            lastCharRead = recvBuff.data()[recvBuff.size()];
-        }
-        
     }
 
 
@@ -222,6 +214,8 @@ private:
     void recieveHandler(const system::error_code& err, std::size_t bytes_transferred) {         // The method that gets called after all data has been recieved from the socket
         if (!err) {                                                                             // If there is no error in reciving data from the socket....
             std::cout << "File is recieved!" << std::endl;                                      // Send a test-friendly message to indicate that the file has been recieved
+            std::cout << "Buffer content: " << recvBuff.data() << std::endl;
+            tcpConnection::startAccept();
         }
         else {                                                                                  // Otherwise, if ther IS an error...
             std::cout << "Something went wrong in recieveHandler! Error: " << err << std::endl; // Print out the error and where it is being caused
