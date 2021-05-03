@@ -80,10 +80,11 @@ void handle(const boost::system::error_code ec, std::size_t t)
 {}
 
 void recieveHandler(const boost::system::error_code& error, std::size_t bytes_transferred) {
+    std::cout << "Read complete!\n";
 }
 
 void recieveFileFromClient(asio::ip::tcp::socket& socket) {
-    std::string fileDirectory = "file1.txt";
+    std::string fileDirectory = "Files\\file1.txt";
     const char* fileName = fileDirectory.c_str();
     FILE* fi;
     errno_t err;
@@ -94,6 +95,8 @@ void recieveFileFromClient(asio::ip::tcp::socket& socket) {
     }
     int recievedBytes = 0;
     socket.async_read_some(boost::asio::buffer(&fi, 100), recieveHandler);
+    //boost::asio::async_read()
+    //boost::asio::async_write()
     //fputs(buffer, stdout);
     std::cout << "Receieved file?\n";
     fclose(fi);

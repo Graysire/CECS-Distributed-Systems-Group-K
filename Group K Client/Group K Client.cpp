@@ -87,25 +87,52 @@ void writeFileToSocket(asio::ip::tcp::socket& soc) {
 
 
     std::vector<char> data(soc.available());                        // Get the amount of data avalible in the socket
-    char buffer[100];
+    char buffer[1024];
 
-    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0) {       // try to open the file
+    if ((err = fopen_s(&fi, fileDirectoryChar, "rb")) != 0){
+    std::ifstream fileData(fileDirectoryChar);
+    //if (fileData.fail()) {       // try to open the file
     // The file couldn't be opened, fi is set to NULL
         std::cout << "Cannot open given file.\n";
     }
     else {
         // File was opened, fi can be used to read the stream
-        std::ofstream fileData(fileDirectoryChar);
+        //if (fileData.eof() == false) {
+        //    fileData.read(buffer, (std::streamsize)buffer);
+        //    if (fileData.gcount() < 0) {
+        //        std::cout << "Something went wrong with reading the file.";
+        //        return;
+        //    }
+        //    std::cout << "Send " << fileData.gcount() << " bytes, total: " << fileData.tellg() << " bytes.\n";
+        //    std::cout << "Buffer content: " << buffer << "\n";
+        //    boost::asio::async_write(soc, boost::asio::buffer(buffer, fileData.gcount()), boost::bind(writeHandler, boost::asio::placeholders::error));
+        //    if (err)
+        //    {
+        //        std::cout << "Send error: " << err << std::endl;
+        //        return;
+        //    }
+        //}
+        //else
+        //    return;
         while (!feof(fi)) {
-            if (fgets(buffer, 100, fi) == NULL) {
+            if (fgets(buffer, 1024, fi) == NULL) {
                 std::cout << "File has finished reading.\n";
                 break;
             }
             fputs(buffer, stdout);                                  // prints the data in the buffer onto the console output
-            soc.async_write_some(boost::asio::buffer(buffer, 100), writeHandler);
-            //boost::asio::async_write(soc, fileData, boost::bind(&writeHandler, boost::asio::placeholders::error));
+            
+            soc.async_write_some(boost::asio::buffer(buffer, 1024), writeHandler);
+
+            // boost::asio::async_write(soc, fileData, boost::bind(&writeHandler, boost::asio::placeholders::error));
+            // boost::asio::async_write(fileData, boost::asio::buffer(buffer, 100), writeHandler,);
+            // boost::asio::async_write(soc, boost::asio::buffer(buffer,1024),writeHandler,
+
+            /*std::cout << "Send " << source_file.gcount() << "bytes, total: " << source_file.tellg() << " bytes.\n";
+            boost::asio::async_write(socket_, boost::asio::buffer(buf.c_array(), source_file.gcount()), boost::bind(&async_tcp_client::handle_write_file, this, boost::asio::placeholders::error));*/
+                //std::ifstream source_file;, boost::array<char, 1024> buf;, tcp::socket socket_;
         }
         fclose(fi);                                                 // close the file
+        //fileData.close();
     }
 }
 
