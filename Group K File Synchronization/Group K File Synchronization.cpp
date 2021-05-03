@@ -194,7 +194,9 @@ public:
 
     void startAccept()                                                      // When connected, recieve files from the server
     {
-        char lastCharRead = ' ';
+        boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
+            boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        char lastCharRead = recvBuff.data()[recvBuff.size()];
         while (lastCharRead != EOF) {
             boost::asio::async_read(socket_, boost::asio::buffer(recvBuff, BUFFERSIZE), boost::bind(&tcpConnection::recieveHandler, shared_from_this(),
                 boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
