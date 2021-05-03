@@ -218,7 +218,7 @@ public:
             closedir(dr);
         }
 
-        MAXNUMFILES = fileNameDirectory.size();
+        MAXNUMFILES = 3;
 
         for (std::map<string, string>::iterator it = fileNameDirectory.begin(); it != fileNameDirectory.end(); ++it) {
             fileDirectoryChar = it->first.c_str();
@@ -294,7 +294,7 @@ private:
     boost::array<char, 1025> sendBuff;                                                          // Data send buffer
     boost::array<char, 1025> recvBuff;                                                          // Data recieve buffer
     const char* fileDirectoryChar;                                                              // File directory as a constant char for reading
-    int MAXNUMFILES = 0;
+    int MAXNUMFILES = 3;
     int currentFileIndex = 1;
     std::string dataSaveString = "";
 };
@@ -447,22 +447,30 @@ string fileComparison(FILE* file1, FILE* file2)
 
     } while (!feof(file1) || !feof(file2));
 
-    free(fi1);
-    free(fi2);
 
     //if statements here may need to read from the async write/read to alter code
     //based on file comparison results
     if (differ ==1)
     {
+        char buffer[365];
+
+        fwrite(buffer, 1, s1, file2);
+        //fwrite(s1, 1, sizeof(s1), fi2);
+        free(fi1);
+        free(fi2);
         //placeholder string statement for solving merge conflicts
         return "Files were found to be different despite same name.";
     }
     else {
+
+        free(fi1);
+        free(fi2);
         //placeholder string statement for ignoring identical files
         return "Files were found to be the same. ";
     }
     //have a case or way of seeing if there is no file present with same name so it 
     //can just write in; maybe new function
+
     return "";
 }
 
