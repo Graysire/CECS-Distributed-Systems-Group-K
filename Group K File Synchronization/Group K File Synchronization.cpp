@@ -18,6 +18,9 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
+#include <iostream>
+#include <dirent.h>
+
 
 using namespace std;
 using namespace boost;
@@ -236,34 +239,51 @@ public:
          //fileDirectoryChar = fileDirectory.c_str(); // GET FILE from given directory
          //#pragma endregion
         std::map<string, string> fileNameDirectory;
-        string path_folder = fileLocator("FileTransferLocation");
-        boost::filesystem::path p{ path_folder };
-        boost::filesystem::directory_iterator enditr;
 
-        for (boost::filesystem::directory_iterator itr(p); itr != enditr; ++itr)
-        {
-            string current_file = itr->path().string();
-            string current_file_date = getFileDate(current_file);
-            fileNameDirectory.insert(pair<string, string>(current_file, current_file_date));
-
-        }
-
-        std::ifstream fileData(fileDirectoryChar);                                          // Open the file data 
-
-        if(fileData.eof() == false) {                                                       // If you don't have an empty file...
-            while (1) {                                                                     // While true...
-                fileData.read(sendBuff.data(), BUFFERSIZE);                                 // Read in the data from the file into the buffer
-                std::streamsize stmSize = ((fileData) ? BUFFERSIZE : fileData.gcount());    // Set the stream size to the appropriate size based on how much data still needs to be sent
-                sendBuff[stmSize] = 0;                                                      // Set the buffer point at the streamsize to 0
-                std::cout << "Send Buffer items: " << sendBuff.data() << std::endl;
-                // A boost asio function that writes the given data to the given socket asynchronously
-                boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, BUFFERSIZE), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
-                    boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-                if (!fileData)                                                              // Once you reach the last portion of the file
-                    break;                                                                  // Break out of the loop
+        DIR* dr;
+        struct dirent* en;
+        dr = opendir("FileTransferLocation");
+        if (dr) {
+            while ((en = readdir(dr)) != NULL){
+                std::cout << "\n" << en->d_name;
+                std::string fileName = en->d_name;
+                fileName = "FileTransferLocation\\" + fileName;
+                std::string fileModDate = getFileDate(fileName);
+                fileNameDirectory.insert(pair<string, string>(fileName, fileModDate));
             }
+            closedir(dr);
         }
-        fileData.close();                                                                   // Close the file after use
+
+        /*string path_folder = fileLocator("FileTransferLocation");
+        boost::filesystem::path p{ path_folder };
+        boost::filesystem::directory_iterator enditr;*/
+        //for (boost::filesystem::directory_iterator itr(p); itr != enditr; ++itr)
+        //{
+        //    string current_file = itr->path().string();
+        //    string current_file_date = getFileDate(current_file);
+        //    fileNameDirectory.insert(pair<string, string>(current_file, current_file_date));
+        //}
+
+        for (std::map<string, string>::iterator it = fileNameDirectory.begin(); it != fileNameDirectory.end(); ++it) {
+            fileDirectoryChar = it->first.c_str();
+            std::cout << "File Directory: " << fileDirectoryChar << std::endl;
+            std::ifstream fileData(fileDirectoryChar);                                          // Open the file data 
+
+            if (fileData.eof() == false) {                                                      // If you don't have an empty file...
+                while (1) {                                                                     // While true...
+                    fileData.read(sendBuff.data(), BUFFERSIZE);                                 // Read in the data from the file into the buffer
+                    std::streamsize stmSize = ((fileData) ? BUFFERSIZE : fileData.gcount());    // Set the stream size to the appropriate size based on how much data still needs to be sent
+                    sendBuff[stmSize] = 0;                                                      // Set the buffer point at the streamsize to 0
+                    std::cout << "Send Buffer items: " << sendBuff.data() << std::endl;
+                    // A boost asio function that writes the given data to the given socket asynchronously
+                    boost::asio::async_write(socket_, boost::asio::buffer(sendBuff, BUFFERSIZE), boost::bind(&tcpConnection::writeHandler, shared_from_this(),
+                        boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+                    if (!fileData)                                                              // Once you reach the last portion of the file
+                        break;                                                                  // Break out of the loop
+                }
+            }
+            fileData.close();                                                                   // Close the file after use
+        }
     }
 
     void startAccept()                                                      // When connected, recieve files from the server
