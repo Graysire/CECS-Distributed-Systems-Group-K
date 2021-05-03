@@ -34,11 +34,13 @@ void writeToSocket(asio::ip::tcp::socket& socket, std::string message)
     }
 }
 
+//returns a vector of IP addresses based onthe arp -a command
+//arp -a will return a list of every interface and IP on the subnet/vLAN
 std::vector<std::string> findIP()
 {
     //create a vector to store the IPs in
     std::vector<std::string> ipList;
-    //Open a command prompt and use arp -a to retrieve a list of IP addresses and hteir interfaces
+    //Open a command prompt and use arp -a to retrieve a list of IP addresses and their interfaces
     FILE* pipe = _popen("arp -a", "r");
     //If the pupe was not created print the error
     if (!pipe)
@@ -134,6 +136,7 @@ void findAndConnect(std::vector<asio::ip::tcp::socket> &socketVector, asio::io_c
 
 }
 
+//returns a list of endpoints from IPS on the subnet
 std::vector<asio::ip::tcp::endpoint> findEndpoints()
 {
     std::vector<asio::ip::tcp::endpoint> endpoints;
@@ -143,29 +146,34 @@ std::vector<asio::ip::tcp::endpoint> findEndpoints()
 
     for (int i = 0; i < ipList.size(); i++)
     {
+        //create an endpoint from the IP address
         asio::ip::tcp::endpoint ep(asio::ip::address::from_string(ipList[i]), PORT);
+        //add the endpoint to the list
         endpoints.push_back(ep);
     }
 
     return endpoints;
 }
 
+//Class representing one TCP connection
 class tcpConnection : public boost::enable_shared_from_this<tcpConnection>
 {
 public:
     typedef boost::shared_ptr<tcpConnection> pointer;
 
+    //creates a new a TCP connection and returns it
     static pointer create(asio::io_context& ios)
     {
         return pointer(new tcpConnection(ios));
     }
 
+    //returns the socket of the connection
     asio::ip::tcp::socket& socket()
     {
         return socket_;
     }
 
-    void startConnect()                                                            // When connected, send your files to the server
+    void startConnect()                                                                     // When connected, send your files to the server
     {
         #pragma region Get file directory (User input method -- to be replaced by checks)
         std::cout << "Directory of the file: ";
@@ -246,6 +254,7 @@ public:
     tcpServer(asio::io_context& ios) : acceptor(ios, tcp::endpoint(tcp::v4(), PORT))
     {
         this->ios = &ios;
+        //starts both accepting and connecting
         startAccept();
         startConnect();
     }
@@ -434,8 +443,9 @@ int main()
     //create vector to hold the active sockets
     std::vector<asio::ip::tcp::socket> socketVector;
 
+    //starts the tcpServer which both accepts and connects to other devices on the network
     tcpServer server = tcpServer(ios);
-    findAndConnect(socketVector, ios);
+    //findAndConnect(socketVector, ios);
     
     //code below is commandline necessary for attempting to file file name
     //in cmd string placeholder has been added for the file location
@@ -460,6 +470,7 @@ int main()
     //    cout << "Files are not the same.";
     //}
 
+    //run the async tasks until the app is closed
     ios.run();
     std::system("pause");
 }
